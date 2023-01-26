@@ -91,7 +91,6 @@
 //! [Cargo]: https://crates.io/
 //! [`serde`]: https://serde.rs/
 
-#![doc(html_root_url = "https://docs.rs/toml/0.5")]
 #![deny(missing_docs)]
 
 mod de;
