@@ -107,7 +107,7 @@ pub enum Error {
     Custom(String),
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default)]
 /// Internal place for holding array settings
 struct ArraySettings {
     indent: usize,
@@ -123,7 +123,7 @@ impl ArraySettings {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default)]
 /// String settings
 struct StringSettings {
     /// Whether to use literal strings when possible
@@ -136,7 +136,7 @@ impl StringSettings {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default)]
 /// Internal struct for holding serialization settings
 struct Settings {
     array: Option<ArraySettings>,
