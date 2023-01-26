@@ -190,7 +190,6 @@ enum ErrorKind {
 
 /// Deserialization implementation for TOML.
 pub struct Deserializer<'a> {
-    require_newline_after_table: bool,
     allow_duplciate_after_longer_table: bool,
     input: &'a str,
     tokens: Tokenizer<'a>,
@@ -1055,7 +1054,6 @@ impl<'a> Deserializer<'a> {
         Deserializer {
             tokens: Tokenizer::new(input),
             input,
-            require_newline_after_table: true,
             allow_duplciate_after_longer_table: false,
         }
     }
@@ -1066,16 +1064,6 @@ impl<'a> Deserializer<'a> {
     /// whitespace/comments.
     pub fn end(&mut self) -> Result<(), Error> {
         Ok(())
-    }
-
-    /// Historical versions of toml-rs accidentally allowed a newline after a
-    /// table definition, but the TOML spec requires a newline after a table
-    /// definition header.
-    ///
-    /// This option can be set to `false` (the default is `true`) to emulate
-    /// this behavior for backwards compatibility with older toml-rs versions.
-    pub fn set_require_newline_after_table(&mut self, require: bool) {
-        self.require_newline_after_table = require;
     }
 
     /// Historical versions of toml-rs accidentally allowed a duplicate table
@@ -1158,24 +1146,8 @@ impl<'a> Deserializer<'a> {
         let start = self.tokens.current();
         self.expect(Token::LeftBracket)?;
         let array = self.eat(Token::LeftBracket)?;
-        let ret = Header::new(self.tokens.clone(), array, self.require_newline_after_table);
-        if self.require_newline_after_table {
-            self.tokens.skip_to_newline();
-        } else {
-            loop {
-                match self.next()? {
-                    Some((_, Token::RightBracket)) => {
-                        if array {
-                            self.eat(Token::RightBracket)?;
-                        }
-                        break;
-                    }
-                    Some((_, Token::Newline)) | None => break,
-                    _ => {}
-                }
-            }
-            self.eat_whitespace()?;
-        }
+        let ret = Header::new(self.tokens.clone(), array);
+        self.tokens.skip_to_newline();
         Ok(Line::Table {
             at: start,
             header: ret,
@@ -1886,17 +1858,15 @@ enum Line<'a> {
 struct Header<'a> {
     first: bool,
     array: bool,
-    require_newline_after_table: bool,
     tokens: Tokenizer<'a>,
 }
 
 impl<'a> Header<'a> {
-    fn new(tokens: Tokenizer<'a>, array: bool, require_newline_after_table: bool) -> Header<'a> {
+    fn new(tokens: Tokenizer<'a>, array: bool) -> Header<'a> {
         Header {
             first: true,
             array,
             tokens,
-            require_newline_after_table,
         }
     }
 
@@ -1914,7 +1884,7 @@ impl<'a> Header<'a> {
             }
 
             self.tokens.eat_whitespace()?;
-            if self.require_newline_after_table && !self.tokens.eat_comment()? {
+            if !self.tokens.eat_comment()? {
                 self.tokens.eat_newline_or_eof()?;
             }
             Ok(None)
