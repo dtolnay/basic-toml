@@ -167,9 +167,6 @@ pub mod de;
 pub use crate::de::{from_slice, from_str, Deserializer};
 mod tokens;
 
-#[doc(hidden)]
-pub mod macros;
-
 mod spanned;
 pub use crate::spanned::Spanned;
 
