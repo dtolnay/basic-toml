@@ -2,13 +2,13 @@
 name = "basic-toml"
 version = "0.0.0"
 authors = ["Alex Crichton <alex@alexcrichton.com>", "David Tolnay <dtolnay@gmail.com>"]
-license = "MIT OR Apache-2.0"
-keywords = ["toml", "serde"]
-repository = "https://github.com/dtolnay/basic-toml"
-documentation = "https://docs.rs/basic-toml"
-description = "Minimal TOML library with few dependencies"
 categories = ["config", "encoding", "parser-implementations"]
+description = "Minimal TOML library with few dependencies"
+documentation = "https://docs.rs/basic-toml"
 edition = "2021"
+keywords = ["toml", "serde"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/dtolnay/basic-toml"
 
 [dependencies]
 serde = "1.0.97"
