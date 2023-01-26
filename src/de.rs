@@ -190,7 +190,6 @@ enum ErrorKind {
 
 /// Deserialization implementation for TOML.
 pub struct Deserializer<'a> {
-    allow_duplciate_after_longer_table: bool,
     input: &'a str,
     tokens: Tokenizer<'a>,
 }
@@ -428,12 +427,10 @@ impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
                 // the longer table was defined first then we want to narrow
                 // down our parent's length if possible to ensure that we catch
                 // duplicate tables defined afterwards.
-                if !self.de.allow_duplciate_after_longer_table {
-                    let parent_len = self.tables[self.cur_parent].header.len();
-                    let cur_len = self.tables[pos].header.len();
-                    if cur_len < parent_len {
-                        self.cur_parent = pos;
-                    }
+                let parent_len = self.tables[self.cur_parent].header.len();
+                let cur_len = self.tables[pos].header.len();
+                if cur_len < parent_len {
+                    self.cur_parent = pos;
                 }
             }
 
@@ -1054,7 +1051,6 @@ impl<'a> Deserializer<'a> {
         Deserializer {
             tokens: Tokenizer::new(input),
             input,
-            allow_duplciate_after_longer_table: false,
         }
     }
 
@@ -1064,16 +1060,6 @@ impl<'a> Deserializer<'a> {
     /// whitespace/comments.
     pub fn end(&mut self) -> Result<(), Error> {
         Ok(())
-    }
-
-    /// Historical versions of toml-rs accidentally allowed a duplicate table
-    /// header after a longer table header was previously defined. This is
-    /// invalid according to the TOML spec, however.
-    ///
-    /// This option can be set to `true` (the default is `false`) to emulate
-    /// this behavior for backwards compatibility with older toml-rs versions.
-    pub fn set_allow_duplicate_after_longer_table(&mut self, allow: bool) {
-        self.allow_duplciate_after_longer_table = allow;
     }
 
     fn tables(&mut self) -> Result<Vec<Table<'a>>, Error> {
