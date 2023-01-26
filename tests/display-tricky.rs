@@ -24,7 +24,7 @@ pub struct Packages {
 
 #[test]
 fn both_ends() {
-    let recipe_works = toml::from_str::<Recipe>(
+    let recipe_works = basic_toml::from_str::<Recipe>(
         r#"
         name = "testing"
         description = "example"
@@ -35,9 +35,9 @@ fn both_ends() {
     "#,
     )
     .unwrap();
-    toml::to_string(&recipe_works).unwrap();
+    basic_toml::to_string(&recipe_works).unwrap();
 
-    let recipe_fails = toml::from_str::<Recipe>(
+    let recipe_fails = basic_toml::from_str::<Recipe>(
         r#"
         name = "testing"
         description = "example"
@@ -48,6 +48,6 @@ fn both_ends() {
     "#,
     )
     .unwrap();
-    let err = toml::to_string(&recipe_fails).unwrap_err();
+    let err = basic_toml::to_string(&recipe_fails).unwrap_err();
     assert_eq!(err.to_string(), "values must be emitted before tables");
 }

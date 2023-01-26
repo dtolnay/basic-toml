@@ -49,6 +49,6 @@ fn main() {
         ip = "127.0.0.1"
     "#;
 
-    let decoded: Config = toml::from_str(toml_str).unwrap();
+    let decoded: Config = basic_toml::from_str(toml_str).unwrap();
     println!("{:#?}", decoded);
 }

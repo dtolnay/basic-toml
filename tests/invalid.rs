@@ -2,7 +2,7 @@ use serde_json::Value;
 
 macro_rules! bad {
     ($toml:expr, $msg:expr) => {
-        match toml::from_str::<Value>($toml) {
+        match basic_toml::from_str::<Value>($toml) {
             Ok(s) => panic!("parsed to: {:#?}", s),
             Err(e) => assert_eq!(e.to_string(), $msg),
         }

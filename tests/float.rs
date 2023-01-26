@@ -15,7 +15,7 @@ macro_rules! float_inf_tests {
             sf7: $ty,
             sf8: $ty,
         }
-        let inf: S = toml::from_str(
+        let inf: S = basic_toml::from_str(
             r"
         # infinity
         sf1 = inf  # positive infinity
@@ -53,7 +53,7 @@ macro_rules! float_inf_tests {
         assert_eq!(inf.sf8, 0.0);
         assert!(inf.sf8.is_sign_negative());
 
-        let s = toml::to_string(&inf).unwrap();
+        let s = basic_toml::to_string(&inf).unwrap();
         assert_eq!(
             s,
             "\
@@ -68,7 +68,7 @@ sf8 = -0.0
 "
         );
 
-        toml::from_str::<Value>(&s).expect("roundtrip");
+        basic_toml::from_str::<Value>(&s).expect("roundtrip");
     }};
 }
 

@@ -8,8 +8,8 @@
 //!
 //! ```toml
 //! [package]
-//! name = "toml"
-//! version = "0.4.2"
+//! name = "basic-toml"
+//! version = "0.0.0"
 //! authors = ["Alex Crichton <alex@alexcrichton.com>"]
 //!
 //! [dependencies]
@@ -40,7 +40,7 @@
 //! }
 //!
 //! fn main() {
-//!     let config: Config = toml::from_str(r#"
+//!     let config: Config = basic_toml::from_str(r#"
 //!         ip = '127.0.0.1'
 //!
 //!         [keys]
@@ -83,7 +83,7 @@
 //!         },
 //!     };
 //!
-//!     let toml = toml::to_string(&config).unwrap();
+//!     let toml = basic_toml::to_string(&config).unwrap();
 //! }
 //! ```
 //!

@@ -1,5 +1,5 @@
+use basic_toml::to_string;
 use serde::{Deserialize, Serialize};
-use toml::to_string;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 struct User {

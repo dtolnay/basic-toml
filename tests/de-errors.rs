@@ -3,7 +3,7 @@ use std::fmt;
 
 macro_rules! bad {
     ($toml:expr, $ty:ty, $msg:expr) => {
-        match toml::from_str::<$ty>($toml) {
+        match basic_toml::from_str::<$ty>($toml) {
             Ok(s) => panic!("parsed to: {:#?}", s),
             Err(e) => assert_eq!(e.to_string(), $msg),
         }
@@ -68,7 +68,7 @@ impl<'de> de::Deserialize<'de> for CasedString {
 
 #[test]
 fn custom_errors() {
-    toml::from_str::<Parent<CasedString>>(
+    basic_toml::from_str::<Parent<CasedString>>(
         "
             p_a = 'a'
             p_b = [{c_a = 'a', c_b = 'c'}]

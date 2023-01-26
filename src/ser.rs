@@ -37,7 +37,7 @@ use std::fmt::{self, Display, Write};
 ///         },
 ///     };
 ///
-///     let toml = toml::to_string(&config).unwrap();
+///     let toml = basic_toml::to_string(&config).unwrap();
 ///     println!("{}", toml)
 /// }
 /// ```

@@ -25,7 +25,7 @@ struct Multi {
 
 #[test]
 fn invalid_variant_returns_error_with_good_message_string() {
-    let error = toml::from_str::<TheEnum>("\"NonExistent\"").unwrap_err();
+    let error = basic_toml::from_str::<TheEnum>("\"NonExistent\"").unwrap_err();
 
     assert_eq!(
         error.to_string(),
@@ -35,7 +35,7 @@ fn invalid_variant_returns_error_with_good_message_string() {
 
 #[test]
 fn invalid_variant_returns_error_with_good_message_inline_table() {
-    let error = toml::from_str::<TheEnum>("{ NonExistent = {} }").unwrap_err();
+    let error = basic_toml::from_str::<TheEnum>("{ NonExistent = {} }").unwrap_err();
     assert_eq!(
         error.to_string(),
         "unknown variant `NonExistent`, expected one of `Plain`, `Tuple`, `NewType`, `Struct`"
@@ -44,15 +44,16 @@ fn invalid_variant_returns_error_with_good_message_inline_table() {
 
 #[test]
 fn extra_field_returns_expected_empty_table_error() {
-    let error = toml::from_str::<TheEnum>("{ Plain = { extra_field = 404 } }").unwrap_err();
+    let error = basic_toml::from_str::<TheEnum>("{ Plain = { extra_field = 404 } }").unwrap_err();
 
     assert_eq!(error.to_string(), "expected empty table");
 }
 
 #[test]
 fn extra_field_returns_expected_empty_table_error_struct_variant() {
-    let error = toml::from_str::<TheEnum>("{ Struct = { value = 123, extra_0 = 0, extra_1 = 1 } }")
-        .unwrap_err();
+    let error =
+        basic_toml::from_str::<TheEnum>("{ Struct = { value = 123, extra_0 = 0, extra_1 = 1 } }")
+            .unwrap_err();
 
     assert_eq!(
         error.to_string(),
@@ -65,23 +66,26 @@ mod enum_unit {
 
     #[test]
     fn from_str() {
-        assert_eq!(TheEnum::Plain, toml::from_str("\"Plain\"").unwrap());
+        assert_eq!(TheEnum::Plain, basic_toml::from_str("\"Plain\"").unwrap());
     }
 
     #[test]
     fn from_inline_table() {
-        assert_eq!(TheEnum::Plain, toml::from_str("{ Plain = {} }").unwrap());
+        assert_eq!(
+            TheEnum::Plain,
+            basic_toml::from_str("{ Plain = {} }").unwrap()
+        );
         assert_eq!(
             Val {
                 val: TheEnum::Plain
             },
-            toml::from_str("val = { Plain = {} }").unwrap()
+            basic_toml::from_str("val = { Plain = {} }").unwrap()
         );
     }
 
     #[test]
     fn from_dotted_table() {
-        assert_eq!(TheEnum::Plain, toml::from_str("[Plain]\n").unwrap());
+        assert_eq!(TheEnum::Plain, basic_toml::from_str("[Plain]\n").unwrap());
     }
 }
 
@@ -92,13 +96,13 @@ mod enum_tuple {
     fn from_inline_table() {
         assert_eq!(
             TheEnum::Tuple(-123, true),
-            toml::from_str("{ Tuple = { 0 = -123, 1 = true } }").unwrap()
+            basic_toml::from_str("{ Tuple = { 0 = -123, 1 = true } }").unwrap()
         );
         assert_eq!(
             Val {
                 val: TheEnum::Tuple(-123, true)
             },
-            toml::from_str("val = { Tuple = { 0 = -123, 1 = true } }").unwrap()
+            basic_toml::from_str("val = { Tuple = { 0 = -123, 1 = true } }").unwrap()
         );
     }
 
@@ -106,7 +110,7 @@ mod enum_tuple {
     fn from_dotted_table() {
         assert_eq!(
             TheEnum::Tuple(-123, true),
-            toml::from_str(
+            basic_toml::from_str(
                 r#"[Tuple]
                 0 = -123
                 1 = true
@@ -124,13 +128,13 @@ mod enum_newtype {
     fn from_inline_table() {
         assert_eq!(
             TheEnum::NewType("value".to_string()),
-            toml::from_str(r#"{ NewType = "value" }"#).unwrap()
+            basic_toml::from_str(r#"{ NewType = "value" }"#).unwrap()
         );
         assert_eq!(
             Val {
                 val: TheEnum::NewType("value".to_string()),
             },
-            toml::from_str(r#"val = { NewType = "value" }"#).unwrap()
+            basic_toml::from_str(r#"val = { NewType = "value" }"#).unwrap()
         );
     }
 
@@ -139,13 +143,13 @@ mod enum_newtype {
     fn from_dotted_table() {
         assert_eq!(
             TheEnum::NewType("value".to_string()),
-            toml::from_str(r#"NewType = "value""#).unwrap()
+            basic_toml::from_str(r#"NewType = "value""#).unwrap()
         );
         assert_eq!(
             Val {
                 val: TheEnum::NewType("value".to_string()),
             },
-            toml::from_str(
+            basic_toml::from_str(
                 r#"[val]
                 NewType = "value"
                 "#
@@ -162,13 +166,13 @@ mod enum_struct {
     fn from_inline_table() {
         assert_eq!(
             TheEnum::Struct { value: -123 },
-            toml::from_str("{ Struct = { value = -123 } }").unwrap()
+            basic_toml::from_str("{ Struct = { value = -123 } }").unwrap()
         );
         assert_eq!(
             Val {
                 val: TheEnum::Struct { value: -123 }
             },
-            toml::from_str("val = { Struct = { value = -123 } }").unwrap()
+            basic_toml::from_str("val = { Struct = { value = -123 } }").unwrap()
         );
     }
 
@@ -176,7 +180,7 @@ mod enum_struct {
     fn from_dotted_table() {
         assert_eq!(
             TheEnum::Struct { value: -123 },
-            toml::from_str(
+            basic_toml::from_str(
                 r#"[Struct]
                 value = -123
                 "#
@@ -191,7 +195,7 @@ mod enum_struct {
             OuterStruct {
                 inner: TheEnum::Struct { value: -123 }
             },
-            toml::from_str(
+            basic_toml::from_str(
                 r#"[inner.Struct]
                 value = -123
                 "#
@@ -222,7 +226,7 @@ mod enum_array {
                     TheEnum::Struct { value: -123 },
                 ]
             },
-            toml::from_str(toml_str).unwrap()
+            basic_toml::from_str(toml_str).unwrap()
         );
     }
 
@@ -250,7 +254,7 @@ mod enum_array {
                     TheEnum::Struct { value: -123 },
                 ]
             },
-            toml::from_str(toml_str).unwrap()
+            basic_toml::from_str(toml_str).unwrap()
         );
     }
 }

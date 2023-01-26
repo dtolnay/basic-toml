@@ -48,7 +48,7 @@ where
 /// }
 ///
 /// fn main() {
-///     let config: Config = toml::from_str(r#"
+///     let config: Config = basic_toml::from_str(r#"
 ///         title = 'TOML Example'
 ///
 ///         [owner]
