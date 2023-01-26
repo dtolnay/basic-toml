@@ -63,9 +63,8 @@ where
     Ok(dst)
 }
 
-/// Errors that can occur when serializing a type.
 #[derive(Debug)]
-pub enum Error {
+pub(crate) enum Error {
     /// Indicates that a Rust type was requested to be serialized but it was not
     /// supported.
     ///
@@ -82,9 +81,6 @@ pub enum Error {
     /// generated.
     ValueAfterTable,
 
-    /// A serialized number was invalid.
-    NumberInvalid,
-
     /// None was attempted to be serialized, but it's not supported.
     UnsupportedNone,
 
@@ -93,16 +89,7 @@ pub enum Error {
     Custom(String),
 }
 
-/// Serialization implementation for TOML.
-///
-/// This structure implements serialization support for TOML to serialize an
-/// arbitrary type to TOML. Note that the TOML format does not support all
-/// datatypes in Rust, such as enums, tuples, and tuple structs. These types
-/// will generate an error when serialized.
-///
-/// Currently a serializer always writes its output to an in-memory `String`,
-/// which is passed in when creating the serializer itself.
-pub struct Serializer<'a> {
+struct Serializer<'a> {
     dst: &'a mut String,
     state: State<'a>,
 }
@@ -130,16 +117,14 @@ enum State<'a> {
     End,
 }
 
-#[doc(hidden)]
-pub struct SerializeSeq<'a, 'b> {
+struct SerializeSeq<'a, 'b> {
     ser: &'b mut Serializer<'a>,
     first: Cell<bool>,
     type_: Cell<Option<ArrayState>>,
     len: Option<usize>,
 }
 
-#[doc(hidden)]
-pub struct SerializeTable<'a, 'b> {
+struct SerializeTable<'a, 'b> {
     ser: &'b mut Serializer<'a>,
     key: String,
     first: Cell<bool>,
@@ -147,11 +132,7 @@ pub struct SerializeTable<'a, 'b> {
 }
 
 impl<'a> Serializer<'a> {
-    /// Creates a new serializer which will emit TOML into the buffer provided.
-    ///
-    /// The serializer can then be used to serialize a type after which the data
-    /// will be present in `dst`.
-    pub fn new(dst: &'a mut String) -> Serializer<'a> {
+    fn new(dst: &'a mut String) -> Serializer<'a> {
         Serializer {
             dst,
             state: State::End,
@@ -906,7 +887,6 @@ impl fmt::Display for Error {
             Error::UnsupportedType => "unsupported Rust type".fmt(f),
             Error::KeyNotString => "map key was not a string".fmt(f),
             Error::ValueAfterTable => "values must be emitted before tables".fmt(f),
-            Error::NumberInvalid => "a serialized number was invalid".fmt(f),
             Error::UnsupportedNone => "unsupported None value".fmt(f),
             Error::Custom(ref s) => s.fmt(f),
         }
