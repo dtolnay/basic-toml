@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate serde_derive;
-extern crate toml;
-
+use serde::{Deserialize, Serialize};
 use toml::to_string;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]

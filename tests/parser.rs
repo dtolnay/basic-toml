@@ -1,5 +1,3 @@
-extern crate toml;
-
 use serde_json::{json, Value};
 
 macro_rules! bad {

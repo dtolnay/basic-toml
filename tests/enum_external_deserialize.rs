@@ -1,6 +1,4 @@
-#[macro_use]
-extern crate serde_derive;
-extern crate toml;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, PartialEq)]
 struct OuterStruct {

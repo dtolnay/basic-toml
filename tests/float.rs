@@ -1,7 +1,4 @@
-extern crate toml;
-#[macro_use]
-extern crate serde_derive;
-
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[rustfmt::skip] // appears to be a bug in rustfmt to make this converge...

@@ -1,7 +1,3 @@
-extern crate serde;
-extern crate serde_json;
-extern crate toml;
-
 use serde_json::{json, Value};
 
 fn to_json(toml: Value) -> Value {
