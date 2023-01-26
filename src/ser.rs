@@ -1,8 +1,7 @@
+use serde::ser::{self, Serialize};
 use std::cell::Cell;
 use std::error;
-use std::fmt::{self, Write};
-
-use serde::ser;
+use std::fmt::{self, Display, Write};
 
 /// Serialize the given data structure as a String of TOML.
 ///
@@ -44,7 +43,7 @@ use serde::ser;
 /// ```
 pub fn to_string<T: ?Sized>(value: &T) -> Result<String, crate::Error>
 where
-    T: ser::Serialize,
+    T: Serialize,
 {
     let mut dst = String::with_capacity(128);
     value.serialize(&mut Serializer::new(&mut dst))?;
@@ -127,7 +126,7 @@ impl<'a> Serializer<'a> {
         }
     }
 
-    fn display<T: fmt::Display>(&mut self, t: T, type_: ArrayState) -> Result<(), Error> {
+    fn display<T: Display>(&mut self, t: T, type_: ArrayState) -> Result<(), Error> {
         self.emit_key(type_)?;
         write!(self.dst, "{}", t).map_err(ser::Error::custom)?;
         if let State::Table { .. } = self.state {
@@ -414,7 +413,6 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
     }
 
     fn serialize_bytes(self, value: &[u8]) -> Result<(), Self::Error> {
-        use serde::ser::Serialize;
         value.serialize(self)
     }
 
@@ -424,7 +422,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
 
     fn serialize_some<T: ?Sized>(self, value: &T) -> Result<(), Self::Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         value.serialize(self)
     }
@@ -452,7 +450,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         value: &T,
     ) -> Result<(), Self::Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         value.serialize(self)
     }
@@ -465,7 +463,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         _value: &T,
     ) -> Result<(), Self::Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         Err(Error::UnsupportedType)
     }
@@ -543,7 +541,7 @@ impl<'a, 'b> ser::SerializeSeq for SerializeSeq<'a, 'b> {
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         value.serialize(&mut Serializer {
             dst: &mut *self.ser.dst,
@@ -581,7 +579,7 @@ impl<'a, 'b> ser::SerializeTuple for SerializeSeq<'a, 'b> {
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -597,7 +595,7 @@ impl<'a, 'b> ser::SerializeTupleVariant for SerializeSeq<'a, 'b> {
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -613,7 +611,7 @@ impl<'a, 'b> ser::SerializeTupleStruct for SerializeSeq<'a, 'b> {
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -629,7 +627,7 @@ impl<'a, 'b> ser::SerializeMap for SerializeTable<'a, 'b> {
 
     fn serialize_key<T: ?Sized>(&mut self, input: &T) -> Result<(), Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         self.key = input.serialize(StringExtractor)?;
         Ok(())
@@ -637,7 +635,7 @@ impl<'a, 'b> ser::SerializeMap for SerializeTable<'a, 'b> {
 
     fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         let res = value.serialize(&mut Serializer {
             dst: &mut *self.ser.dst,
@@ -671,7 +669,7 @@ impl<'a, 'b> ser::SerializeStruct for SerializeTable<'a, 'b> {
 
     fn serialize_field<T: ?Sized>(&mut self, key: &'static str, value: &T) -> Result<(), Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         let res = value.serialize(&mut Serializer {
             dst: &mut *self.ser.dst,
@@ -774,7 +772,7 @@ impl ser::Serializer for StringExtractor {
 
     fn serialize_some<T: ?Sized>(self, _value: &T) -> Result<String, Self::Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         Err(Error::KeyNotString)
     }
@@ -802,7 +800,7 @@ impl ser::Serializer for StringExtractor {
         value: &T,
     ) -> Result<String, Self::Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         value.serialize(self)
     }
@@ -815,7 +813,7 @@ impl ser::Serializer for StringExtractor {
         _value: &T,
     ) -> Result<String, Self::Error>
     where
-        T: ser::Serialize,
+        T: Serialize,
     {
         Err(Error::KeyNotString)
     }
@@ -869,7 +867,7 @@ impl ser::Serializer for StringExtractor {
     }
 }
 
-impl fmt::Display for Error {
+impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::UnsupportedType => "unsupported Rust type".fmt(f),
@@ -884,7 +882,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {}
 
 impl ser::Error for Error {
-    fn custom<T: fmt::Display>(msg: T) -> Error {
+    fn custom<T: Display>(msg: T) -> Error {
         Error::Custom(msg.to_string())
     }
 }

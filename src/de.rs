@@ -1,16 +1,14 @@
+use crate::tokens::{Error as TokenError, Span, Token, Tokenizer};
+use serde::de;
+use serde::de::IntoDeserializer;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::error;
 use std::f64;
-use std::fmt;
+use std::fmt::{self, Display};
 use std::iter;
 use std::str;
 use std::vec;
-
-use serde::de;
-use serde::de::IntoDeserializer;
-
-use crate::tokens::{Error as TokenError, Span, Token, Tokenizer};
 
 type TablePair<'a> = ((Span, Cow<'a, str>), Value<'a>);
 
@@ -1711,7 +1709,7 @@ impl std::convert::From<Error> for std::io::Error {
     }
 }
 
-impl fmt::Display for Error {
+impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.kind {
             ErrorKind::UnexpectedEof => "unexpected eof encountered".fmt(f)?,
@@ -1795,7 +1793,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {}
 
 impl de::Error for Error {
-    fn custom<T: fmt::Display>(msg: T) -> Error {
+    fn custom<T: Display>(msg: T) -> Error {
         Error::custom(None, msg.to_string())
     }
 }

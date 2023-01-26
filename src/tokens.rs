@@ -1,10 +1,9 @@
+use self::Token::*;
 use std::borrow::Cow;
 use std::char;
 use std::str;
 use std::string;
 use std::string::String as StdString;
-
-use self::Token::*;
 
 /// A span, designating a range of bytes where a token is located.
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
