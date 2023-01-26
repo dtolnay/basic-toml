@@ -91,14 +91,6 @@ pub enum Error {
     /// attempted where the key of a map was not a string.
     KeyNotString,
 
-    /// An error that we never omit but keep for backwards compatibility
-    #[doc(hidden)]
-    KeyNewline,
-
-    /// An array had to be homogeneous, but now it is allowed to be heterogeneous.
-    #[doc(hidden)]
-    ArrayMixedType,
-
     /// All values in a TOML table must be emitted before further tables are
     /// emitted. If a value is emitted *after* a table then this error is
     /// generated.
@@ -1283,8 +1275,6 @@ impl fmt::Display for Error {
             Error::NumberInvalid => "a serialized number was invalid".fmt(f),
             Error::UnsupportedNone => "unsupported None value".fmt(f),
             Error::Custom(ref s) => s.fmt(f),
-            Error::KeyNewline => unreachable!(),
-            Error::ArrayMixedType => unreachable!(),
         }
     }
 }
