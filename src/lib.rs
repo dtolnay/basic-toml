@@ -102,7 +102,3 @@ pub mod de;
 #[doc(no_inline)]
 pub use crate::de::{from_slice, from_str, Deserializer};
 mod tokens;
-
-// Just for rustdoc
-#[allow(unused_imports)]
-use core::str::FromStr;
