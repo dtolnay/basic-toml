@@ -1,15 +1,3 @@
-//! Serializing Rust structures into TOML.
-//!
-//! This module contains all the Serde support for serializing Rust structures
-//! into TOML documents (as strings). Note that some top-level functions here
-//! are also provided at the top of the crate.
-//!
-//! Note that the TOML format has a restriction that if a table itself contains
-//! tables, all keys with non-table values must be emitted first. This is
-//! typically easy to ensure happens when you're defining a `struct` as you can
-//! reorder the fields manually, but when working with maps (such as `BTreeMap`
-//! or `HashMap`) this can lead to serialization errors.
-
 use std::cell::Cell;
 use std::error;
 use std::fmt::{self, Write};

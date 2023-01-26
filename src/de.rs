@@ -1,9 +1,3 @@
-//! Deserializing TOML into Rust structures.
-//!
-//! This module contains all the Serde support for deserializing TOML documents
-//! into Rust structures. Note that some top-level functions here are also
-//! provided at the top of the crate.
-
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::error;
@@ -18,7 +12,6 @@ use serde::de::IntoDeserializer;
 
 use crate::tokens::{Error as TokenError, Span, Token, Tokenizer};
 
-/// Type Alias for a TOML Table pair
 type TablePair<'a> = ((Span, Cow<'a, str>), Value<'a>);
 
 /// Deserializes a byte slice into a type.
