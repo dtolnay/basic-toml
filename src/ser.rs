@@ -113,9 +113,6 @@ pub enum Error {
     /// A custom error which could be generated when serializing a particular
     /// type.
     Custom(String),
-
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -1288,7 +1285,6 @@ impl fmt::Display for Error {
             Error::Custom(ref s) => s.fmt(f),
             Error::KeyNewline => unreachable!(),
             Error::ArrayMixedType => unreachable!(),
-            Error::__Nonexhaustive => panic!(),
         }
     }
 }

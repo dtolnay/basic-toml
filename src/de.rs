@@ -186,9 +186,6 @@ enum ErrorKind {
 
     /// Unquoted string was found when quoted one was expected
     UnquotedString,
-
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 /// Deserialization implementation for TOML.
@@ -1848,7 +1845,6 @@ impl fmt::Display for Error {
                 f,
                 "invalid TOML value, did you mean to use a quoted string?"
             )?,
-            ErrorKind::__Nonexhaustive => panic!(),
         }
 
         if !self.inner.key.is_empty() {
