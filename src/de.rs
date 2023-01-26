@@ -1452,7 +1452,7 @@ impl<'a> Deserializer<'a> {
     fn array(&mut self) -> Result<(Span, Vec<Value<'a>>), Error> {
         let mut ret = Vec::new();
 
-        let intermediate = |me: &mut Deserializer<'_>| {
+        let intermediate = |me: &mut Deserializer| {
             loop {
                 me.eat_whitespace()?;
                 if !me.eat(Token::Newline)? && !me.eat_comment()? {
@@ -1712,7 +1712,7 @@ impl std::convert::From<Error> for std::io::Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.kind {
             ErrorKind::UnexpectedEof => "unexpected eof encountered".fmt(f)?,
             ErrorKind::InvalidCharInString(c) => write!(

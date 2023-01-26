@@ -143,7 +143,7 @@ impl<'a> Serializer<'a> {
     }
 
     // recursive implementation of `emit_key` above
-    fn _emit_key(&mut self, state: &State<'_>) -> Result<(), Error> {
+    fn _emit_key(&mut self, state: &State) -> Result<(), Error> {
         match *state {
             State::End => Ok(()),
             State::Array {
@@ -233,7 +233,7 @@ impl<'a> Serializer<'a> {
         Ok(())
     }
 
-    fn emit_table_header(&mut self, state: &State<'_>) -> Result<(), Error> {
+    fn emit_table_header(&mut self, state: &State) -> Result<(), Error> {
         let array_of_tables = match *state {
             State::End => return Ok(()),
             State::Array { .. } => true,
@@ -297,7 +297,7 @@ impl<'a> Serializer<'a> {
         Ok(())
     }
 
-    fn emit_key_part(&mut self, key: &State<'_>) -> Result<bool, Error> {
+    fn emit_key_part(&mut self, key: &State) -> Result<bool, Error> {
         match *key {
             State::Array { parent, .. } => self.emit_key_part(parent),
             State::End => Ok(true),
@@ -870,7 +870,7 @@ impl ser::Serializer for StringExtractor {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::UnsupportedType => "unsupported Rust type".fmt(f),
             Error::KeyNotString => "map key was not a string".fmt(f),

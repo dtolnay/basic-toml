@@ -93,7 +93,6 @@
 
 #![doc(html_root_url = "https://docs.rs/toml/0.5")]
 #![deny(missing_docs)]
-#![warn(rust_2018_idioms)]
 
 mod de;
 mod error;

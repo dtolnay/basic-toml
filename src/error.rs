@@ -34,7 +34,7 @@ impl From<crate::de::Error> for Error {
 }
 
 impl Display for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match &self.0 {
             ErrorInner::Ser(error) => Display::fmt(error, formatter),
             ErrorInner::De(error) => Display::fmt(error, formatter),
@@ -43,7 +43,7 @@ impl Display for Error {
 }
 
 impl Debug for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match &self.0 {
             ErrorInner::Ser(error) => Debug::fmt(error, formatter),
             ErrorInner::De(error) => Debug::fmt(error, formatter),
