@@ -72,11 +72,6 @@ where
 
 #[derive(Debug)]
 pub(crate) struct Error {
-    inner: Box<ErrorInner>,
-}
-
-#[derive(Debug)]
-struct ErrorInner {
     kind: ErrorKind,
     line: Option<usize>,
     col: usize,
@@ -1658,37 +1653,33 @@ impl<'a> Deserializer<'a> {
 
 impl Error {
     pub(crate) fn line_col(&self) -> Option<(usize, usize)> {
-        self.inner.line.map(|line| (line, self.inner.col))
+        self.line.map(|line| (line, self.col))
     }
 
     fn from_kind(at: Option<usize>, kind: ErrorKind) -> Error {
         Error {
-            inner: Box::new(ErrorInner {
-                kind,
-                line: None,
-                col: 0,
-                at,
-                message: String::new(),
-                key: Vec::new(),
-            }),
+            kind,
+            line: None,
+            col: 0,
+            at,
+            message: String::new(),
+            key: Vec::new(),
         }
     }
 
     fn custom(at: Option<usize>, s: String) -> Error {
         Error {
-            inner: Box::new(ErrorInner {
-                kind: ErrorKind::Custom,
-                line: None,
-                col: 0,
-                at,
-                message: s,
-                key: Vec::new(),
-            }),
+            kind: ErrorKind::Custom,
+            line: None,
+            col: 0,
+            at,
+            message: s,
+            key: Vec::new(),
         }
     }
 
     pub(crate) fn add_key_context(&mut self, key: &str) {
-        self.inner.key.insert(0, key.to_string());
+        self.key.insert(0, key.to_string());
     }
 
     fn fix_offset<F>(&mut self, f: F)
@@ -1697,8 +1688,8 @@ impl Error {
     {
         // An existing offset is always better positioned than anything we
         // might want to add later.
-        if self.inner.at.is_none() {
-            self.inner.at = f();
+        if self.at.is_none() {
+            self.at = f();
         }
     }
 
@@ -1706,10 +1697,10 @@ impl Error {
     where
         F: FnOnce(usize) -> (usize, usize),
     {
-        if let Some(at) = self.inner.at {
+        if let Some(at) = self.at {
             let (line, col) = f(at);
-            self.inner.line = Some(line);
-            self.inner.col = col;
+            self.line = Some(line);
+            self.col = col;
         }
     }
 }
@@ -1722,7 +1713,7 @@ impl std::convert::From<Error> for std::io::Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.inner.kind {
+        match &self.kind {
             ErrorKind::UnexpectedEof => "unexpected eof encountered".fmt(f)?,
             ErrorKind::InvalidCharInString(c) => write!(
                 f,
@@ -1758,7 +1749,7 @@ impl fmt::Display for Error {
             ErrorKind::RedefineAsArray => "table redefined as array".fmt(f)?,
             ErrorKind::EmptyTableKey => "empty table key found".fmt(f)?,
             ErrorKind::MultilineStringKey => "multiline strings are not allowed for key".fmt(f)?,
-            ErrorKind::Custom => self.inner.message.fmt(f)?,
+            ErrorKind::Custom => self.message.fmt(f)?,
             ErrorKind::ExpectedTuple(l) => write!(f, "expected table with length {}", l)?,
             ErrorKind::ExpectedTupleIndex {
                 expected,
@@ -1782,9 +1773,9 @@ impl fmt::Display for Error {
             )?,
         }
 
-        if !self.inner.key.is_empty() {
+        if !self.key.is_empty() {
             write!(f, " for key `")?;
-            for (i, k) in self.inner.key.iter().enumerate() {
+            for (i, k) in self.key.iter().enumerate() {
                 if i > 0 {
                     write!(f, ".")?;
                 }
@@ -1793,8 +1784,8 @@ impl fmt::Display for Error {
             write!(f, "`")?;
         }
 
-        if let Some(line) = self.inner.line {
-            write!(f, " at line {} column {}", line + 1, self.inner.col + 1)?;
+        if let Some(line) = self.line {
+            write!(f, " at line {} column {}", line + 1, self.col + 1)?;
         }
 
         Ok(())
