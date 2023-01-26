@@ -96,10 +96,12 @@
 #![warn(rust_2018_idioms)]
 
 pub mod de;
+mod error;
 pub mod ser;
 mod tokens;
 
 #[doc(no_inline)]
 pub use crate::de::{from_slice, from_str, Deserializer};
+pub use crate::error::Error;
 #[doc(no_inline)]
 pub use crate::ser::{to_string, Serializer};

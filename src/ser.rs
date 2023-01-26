@@ -54,7 +54,7 @@ use serde::ser;
 ///     println!("{}", toml)
 /// }
 /// ```
-pub fn to_string<T: ?Sized>(value: &T) -> Result<String, Error>
+pub fn to_string<T: ?Sized>(value: &T) -> Result<String, crate::Error>
 where
     T: ser::Serialize,
 {

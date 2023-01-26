@@ -25,13 +25,13 @@ type TablePair<'a> = ((Span, Cow<'a, str>), Value<'a>);
 ///
 /// This function will attempt to interpret `bytes` as UTF-8 data and then
 /// deserialize `T` from the TOML document provided.
-pub fn from_slice<'de, T>(bytes: &'de [u8]) -> Result<T, Error>
+pub fn from_slice<'de, T>(bytes: &'de [u8]) -> Result<T, crate::Error>
 where
     T: de::Deserialize<'de>,
 {
     match str::from_utf8(bytes) {
         Ok(s) => from_str(s),
-        Err(e) => Err(Error::custom(None, e.to_string())),
+        Err(e) => Err(crate::Error::from(Error::custom(None, e.to_string()))),
     }
 }
 
@@ -68,12 +68,13 @@ where
 ///     assert_eq!(config.owner.name, "Lisa");
 /// }
 /// ```
-pub fn from_str<'de, T>(s: &'de str) -> Result<T, Error>
+pub fn from_str<'de, T>(s: &'de str) -> Result<T, crate::Error>
 where
     T: de::Deserialize<'de>,
 {
     let mut d = Deserializer::new(s);
-    T::deserialize(&mut d)
+    let t = T::deserialize(&mut d)?;
+    Ok(t)
 }
 
 /// Errors that can occur when deserializing a type.
