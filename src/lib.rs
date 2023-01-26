@@ -95,10 +95,11 @@
 #![deny(missing_docs)]
 #![warn(rust_2018_idioms)]
 
-pub mod ser;
-#[doc(no_inline)]
-pub use crate::ser::{to_string, Serializer};
 pub mod de;
+pub mod ser;
+mod tokens;
+
 #[doc(no_inline)]
 pub use crate::de::{from_slice, from_str, Deserializer};
-mod tokens;
+#[doc(no_inline)]
+pub use crate::ser::{to_string, Serializer};
