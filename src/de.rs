@@ -77,9 +77,8 @@ where
     Ok(t)
 }
 
-/// Errors that can occur when deserializing a type.
 #[derive(Debug)]
-pub struct Error {
+pub(crate) struct Error {
     inner: Box<ErrorInner>,
 }
 
@@ -187,8 +186,7 @@ enum ErrorKind {
     UnquotedString,
 }
 
-/// Deserialization implementation for TOML.
-pub struct Deserializer<'a> {
+struct Deserializer<'a> {
     input: &'a str,
     tokens: Tokenizer<'a>,
 }
@@ -1044,9 +1042,7 @@ impl<'de> de::VariantAccess<'de> for TableEnumDeserializer<'de> {
 }
 
 impl<'a> Deserializer<'a> {
-    /// Creates a new deserializer which will be deserializing the string
-    /// provided.
-    pub fn new(input: &'a str) -> Deserializer<'a> {
+    fn new(input: &'a str) -> Deserializer<'a> {
         Deserializer {
             tokens: Tokenizer::new(input),
             input,
@@ -1668,10 +1664,7 @@ impl<'a> Deserializer<'a> {
 }
 
 impl Error {
-    /// Produces a (line, column) pair of the position of the error if available
-    ///
-    /// All indexes are 0-based.
-    pub fn line_col(&self) -> Option<(usize, usize)> {
+    pub(crate) fn line_col(&self) -> Option<(usize, usize)> {
         self.inner.line.map(|line| (line, self.inner.col))
     }
 

@@ -8,6 +8,19 @@ pub(crate) enum ErrorInner {
     De(crate::de::Error),
 }
 
+impl Error {
+    /// Produces a (line, column) pair of the position of the error if
+    /// available.
+    ///
+    /// All indexes are 0-based.
+    pub fn line_col(&self) -> Option<(usize, usize)> {
+        match &self.0 {
+            ErrorInner::Ser(_) => None,
+            ErrorInner::De(error) => error.line_col(),
+        }
+    }
+}
+
 impl From<crate::ser::Error> for Error {
     fn from(error: crate::ser::Error) -> Self {
         Error(ErrorInner::Ser(error))

@@ -101,7 +101,7 @@ pub mod ser;
 mod tokens;
 
 #[doc(no_inline)]
-pub use crate::de::{from_slice, from_str, Deserializer};
+pub use crate::de::{from_slice, from_str};
 pub use crate::error::Error;
 #[doc(no_inline)]
 pub use crate::ser::to_string;
