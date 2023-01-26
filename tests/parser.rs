@@ -640,37 +640,41 @@ fn bad_table_redefine() {
 
 #[test]
 fn datetimes() {
-    macro_rules! t {
-        ($actual:expr) => {{
-            let f = format!("foo = {}", $actual);
-            let toml = f.parse::<Value>().expect(&format!("failed: {}", f));
-            assert_eq!(toml["foo"].as_datetime().unwrap().to_string(), $actual);
-        }};
-    }
-
-    t!("2016-09-09T09:09:09Z");
-    t!("2016-09-09T09:09:09.1Z");
-    t!("2016-09-09T09:09:09.2+10:00");
-    t!("2016-09-09T09:09:09.123456789-02:00");
+    bad!(
+        "foo = 2016-09-09T09:09:09Z",
+        "invalid number at line 1 column 7"
+    );
+    bad!(
+        "foo = 2016-09-09T09:09:09.1Z",
+        "invalid number at line 1 column 7"
+    );
+    bad!(
+        "foo = 2016-09-09T09:09:09.2+10:00",
+        "invalid number at line 1 column 7"
+    );
+    bad!(
+        "foo = 2016-09-09T09:09:09.123456789-02:00",
+        "invalid number at line 1 column 7"
+    );
     bad!(
         "foo = 2016-09-09T09:09:09.Z",
-        "failed to parse datetime for key `foo` at line 1 column 7"
+        "invalid number at line 1 column 7"
     );
     bad!(
         "foo = 2016-9-09T09:09:09Z",
-        "failed to parse datetime for key `foo` at line 1 column 7"
+        "invalid number at line 1 column 7"
     );
     bad!(
         "foo = 2016-09-09T09:09:09+2:00",
-        "failed to parse datetime for key `foo` at line 1 column 7"
+        "invalid number at line 1 column 7"
     );
     bad!(
         "foo = 2016-09-09T09:09:09-2:00",
-        "failed to parse datetime for key `foo` at line 1 column 7"
+        "invalid number at line 1 column 7"
     );
     bad!(
         "foo = 2016-09-09T09:09:09Z-2:00",
-        "failed to parse datetime for key `foo` at line 1 column 7"
+        "invalid number at line 1 column 7"
     );
 }
 

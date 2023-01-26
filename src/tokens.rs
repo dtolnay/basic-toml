@@ -265,10 +265,6 @@ impl<'a> Tokenizer<'a> {
             .unwrap_or_else(|| self.input.len())
     }
 
-    pub fn input(&self) -> &'a str {
-        self.input
-    }
-
     fn whitespace_token(&mut self, start: usize) -> Token<'a> {
         while self.eatc(' ') || self.eatc('\t') {
             // ...

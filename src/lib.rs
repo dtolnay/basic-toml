@@ -29,15 +29,10 @@
 //!     Integer(i64),
 //!     Float(f64),
 //!     Boolean(bool),
-//!     Datetime(Datetime),
 //!     Array(Array),
 //!     Table(Table),
 //! }
 //! ```
-//!
-//! TOML is similar to JSON with the notable addition of a [`Datetime`]
-//! type. In general, TOML and JSON are interchangeable in terms of
-//! formats.
 //!
 //! ## Parsing TOML
 //!
@@ -63,14 +58,12 @@
 //!
 //! * `Deserialize for Value`
 //! * `Serialize for Value`
-//! * `Deserialize for Datetime`
-//! * `Serialize for Datetime`
 //! * `Deserializer for de::Deserializer`
 //! * `Serializer for ser::Serializer`
 //! * `Deserializer for Value`
 //!
 //! This means that you can use Serde to deserialize/serialize the
-//! [`Value`] type as well as the [`Datetime`] type in this crate. You can also
+//! [`Value`] type in this crate. You can also
 //! use the [`Deserializer`], [`Serializer`], or [`Value`] type itself to act as
 //! a deserializer/serializer for arbitrary types.
 //!
@@ -157,7 +150,6 @@ pub mod map;
 pub mod value;
 #[doc(no_inline)]
 pub use crate::value::Value;
-mod datetime;
 
 pub mod ser;
 #[doc(no_inline)]
@@ -168,7 +160,5 @@ pub use crate::de::{from_slice, from_str, Deserializer};
 mod tokens;
 
 // Just for rustdoc
-#[allow(unused_imports)]
-use crate::datetime::Datetime;
 #[allow(unused_imports)]
 use core::str::FromStr;

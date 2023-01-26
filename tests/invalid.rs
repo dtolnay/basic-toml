@@ -17,22 +17,22 @@ macro_rules! test( ($name:ident, $s:expr, $msg:expr) => (
 test!(
     datetime_malformed_no_leads,
     include_str!("invalid/datetime-malformed-no-leads.toml"),
-    "failed to parse datetime for key `no-leads` at line 1 column 12"
+    "invalid number at line 1 column 12"
 );
 test!(
     datetime_malformed_no_secs,
     include_str!("invalid/datetime-malformed-no-secs.toml"),
-    "expected a colon, found a newline at line 1 column 28"
+    "invalid number at line 1 column 11"
 );
 test!(
     datetime_malformed_no_t,
     include_str!("invalid/datetime-malformed-no-t.toml"),
-    "failed to parse datetime for key `no-t` at line 1 column 8"
+    "invalid number at line 1 column 8"
 );
 test!(
     datetime_malformed_with_milli,
     include_str!("invalid/datetime-malformed-with-milli.toml"),
-    "failed to parse datetime for key `with-milli` at line 1 column 14"
+    "invalid number at line 1 column 14"
 );
 test!(
     duplicate_key_table,

@@ -31,7 +31,6 @@ use std::fmt::{self, Write};
 use std::marker;
 use std::rc::Rc;
 
-use crate::datetime;
 use serde::ser;
 
 /// Serialize the given data structure as a TOML byte vector.
@@ -133,9 +132,6 @@ pub enum Error {
     /// generated.
     ValueAfterTable,
 
-    /// A serialized date was invalid.
-    DateInvalid,
-
     /// A serialized number was invalid.
     NumberInvalid,
 
@@ -233,14 +229,11 @@ pub struct SerializeSeq<'a, 'b> {
 }
 
 #[doc(hidden)]
-pub enum SerializeTable<'a, 'b> {
-    Datetime(&'b mut Serializer<'a>),
-    Table {
-        ser: &'b mut Serializer<'a>,
-        key: String,
-        first: Cell<bool>,
-        table_emitted: Cell<bool>,
-    },
+pub struct SerializeTable<'a, 'b> {
+    ser: &'b mut Serializer<'a>,
+    key: String,
+    first: Cell<bool>,
+    table_emitted: Cell<bool>,
 }
 
 impl<'a> Serializer<'a> {
@@ -934,7 +927,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
         self.array_type(ArrayState::StartedAsATable)?;
-        Ok(SerializeTable::Table {
+        Ok(SerializeTable {
             ser: self,
             key: String::new(),
             first: Cell::new(true),
@@ -944,21 +937,16 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
 
     fn serialize_struct(
         self,
-        name: &'static str,
+        _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        if name == datetime::NAME {
-            self.array_type(ArrayState::Started)?;
-            Ok(SerializeTable::Datetime(self))
-        } else {
-            self.array_type(ArrayState::StartedAsATable)?;
-            Ok(SerializeTable::Table {
-                ser: self,
-                key: String::new(),
-                first: Cell::new(true),
-                table_emitted: Cell::new(false),
-            })
-        }
+        self.array_type(ArrayState::StartedAsATable)?;
+        Ok(SerializeTable {
+            ser: self,
+            key: String::new(),
+            first: Cell::new(true),
+            table_emitted: Cell::new(false),
+        })
     }
 
     fn serialize_struct_variant(
@@ -1077,13 +1065,7 @@ impl<'a, 'b> ser::SerializeMap for SerializeTable<'a, 'b> {
     where
         T: ser::Serialize,
     {
-        match *self {
-            SerializeTable::Datetime(_) => panic!(), // shouldn't be possible
-            SerializeTable::Table { ref mut key, .. } => {
-                key.truncate(0);
-                *key = input.serialize(StringExtractor)?;
-            }
-        }
+        self.key = input.serialize(StringExtractor)?;
         Ok(())
     }
 
@@ -1091,44 +1073,28 @@ impl<'a, 'b> ser::SerializeMap for SerializeTable<'a, 'b> {
     where
         T: ser::Serialize,
     {
-        match *self {
-            SerializeTable::Datetime(_) => panic!(), // shouldn't be possible
-            SerializeTable::Table {
-                ref mut ser,
-                ref key,
-                ref first,
-                ref table_emitted,
-                ..
-            } => {
-                let res = value.serialize(&mut Serializer {
-                    dst: &mut *ser.dst,
-                    state: State::Table {
-                        key,
-                        parent: &ser.state,
-                        first,
-                        table_emitted,
-                    },
-                    settings: ser.settings.clone(),
-                });
-                match res {
-                    Ok(()) => first.set(false),
-                    Err(Error::UnsupportedNone) => {}
-                    Err(e) => return Err(e),
-                }
-            }
+        let res = value.serialize(&mut Serializer {
+            dst: &mut *self.ser.dst,
+            state: State::Table {
+                key: &self.key,
+                parent: &self.ser.state,
+                first: &self.first,
+                table_emitted: &self.table_emitted,
+            },
+            settings: self.ser.settings.clone(),
+        });
+        match res {
+            Ok(()) => self.first.set(false),
+            Err(Error::UnsupportedNone) => {}
+            Err(e) => return Err(e),
         }
         Ok(())
     }
 
     fn end(self) -> Result<(), Error> {
-        match self {
-            SerializeTable::Datetime(_) => panic!(), // shouldn't be possible
-            SerializeTable::Table { ser, first, .. } => {
-                if first.get() {
-                    let state = ser.state.clone();
-                    ser.emit_table_header(&state)?;
-                }
-            }
+        if self.first.get() {
+            let state = self.ser.state.clone();
+            self.ser.emit_table_header(&state)?;
         }
         Ok(())
     }
@@ -1142,222 +1108,30 @@ impl<'a, 'b> ser::SerializeStruct for SerializeTable<'a, 'b> {
     where
         T: ser::Serialize,
     {
-        match *self {
-            SerializeTable::Datetime(ref mut ser) => {
-                if key == datetime::FIELD {
-                    value.serialize(DateStrEmitter(&mut *ser))?;
-                } else {
-                    return Err(Error::DateInvalid);
-                }
-            }
-            SerializeTable::Table {
-                ref mut ser,
-                ref first,
-                ref table_emitted,
-                ..
-            } => {
-                let res = value.serialize(&mut Serializer {
-                    dst: &mut *ser.dst,
-                    state: State::Table {
-                        key,
-                        parent: &ser.state,
-                        first,
-                        table_emitted,
-                    },
-                    settings: ser.settings.clone(),
-                });
-                match res {
-                    Ok(()) => first.set(false),
-                    Err(Error::UnsupportedNone) => {}
-                    Err(e) => return Err(e),
-                }
-            }
+        let res = value.serialize(&mut Serializer {
+            dst: &mut *self.ser.dst,
+            state: State::Table {
+                key,
+                parent: &self.ser.state,
+                first: &self.first,
+                table_emitted: &self.table_emitted,
+            },
+            settings: self.ser.settings.clone(),
+        });
+        match res {
+            Ok(()) => self.first.set(false),
+            Err(Error::UnsupportedNone) => {}
+            Err(e) => return Err(e),
         }
         Ok(())
     }
 
     fn end(self) -> Result<(), Error> {
-        match self {
-            SerializeTable::Datetime(_) => {}
-            SerializeTable::Table { ser, first, .. } => {
-                if first.get() {
-                    let state = ser.state.clone();
-                    ser.emit_table_header(&state)?;
-                }
-            }
+        if self.first.get() {
+            let state = self.ser.state.clone();
+            self.ser.emit_table_header(&state)?;
         }
         Ok(())
-    }
-}
-
-struct DateStrEmitter<'a, 'b>(&'b mut Serializer<'a>);
-
-impl<'a, 'b> ser::Serializer for DateStrEmitter<'a, 'b> {
-    type Ok = ();
-    type Error = Error;
-    type SerializeSeq = ser::Impossible<(), Error>;
-    type SerializeTuple = ser::Impossible<(), Error>;
-    type SerializeTupleStruct = ser::Impossible<(), Error>;
-    type SerializeTupleVariant = ser::Impossible<(), Error>;
-    type SerializeMap = ser::Impossible<(), Error>;
-    type SerializeStruct = ser::Impossible<(), Error>;
-    type SerializeStructVariant = ser::Impossible<(), Error>;
-
-    fn serialize_bool(self, _v: bool) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_i8(self, _v: i8) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_i16(self, _v: i16) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_i32(self, _v: i32) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_i64(self, _v: i64) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_u8(self, _v: u8) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_u16(self, _v: u16) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_u32(self, _v: u32) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_u64(self, _v: u64) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_f32(self, _v: f32) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_f64(self, _v: f64) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_char(self, _v: char) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_str(self, value: &str) -> Result<(), Self::Error> {
-        self.0.display(value, ArrayState::Started)?;
-        Ok(())
-    }
-
-    fn serialize_bytes(self, _value: &[u8]) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_none(self) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_some<T: ?Sized>(self, _value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_unit(self) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_unit_struct(self, _name: &'static str) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_unit_variant(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        _variant: &'static str,
-    ) -> Result<(), Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_newtype_struct<T: ?Sized>(
-        self,
-        _name: &'static str,
-        _value: &T,
-    ) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_newtype_variant<T: ?Sized>(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        _variant: &'static str,
-        _value: &T,
-    ) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_tuple_struct(
-        self,
-        _name: &'static str,
-        _len: usize,
-    ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_tuple_variant(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        _variant: &'static str,
-        _len: usize,
-    ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_struct(
-        self,
-        _name: &'static str,
-        _len: usize,
-    ) -> Result<Self::SerializeStruct, Self::Error> {
-        Err(Error::DateInvalid)
-    }
-
-    fn serialize_struct_variant(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        _variant: &'static str,
-        _len: usize,
-    ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        Err(Error::DateInvalid)
     }
 }
 
@@ -1537,7 +1311,6 @@ impl fmt::Display for Error {
             Error::UnsupportedType => "unsupported Rust type".fmt(f),
             Error::KeyNotString => "map key was not a string".fmt(f),
             Error::ValueAfterTable => "values must be emitted before tables".fmt(f),
-            Error::DateInvalid => "a serialized date was invalid".fmt(f),
             Error::NumberInvalid => "a serialized number was invalid".fmt(f),
             Error::UnsupportedNone => "unsupported None value".fmt(f),
             Error::Custom(ref s) => s.fmt(f),

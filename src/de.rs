@@ -16,7 +16,6 @@ use std::vec;
 use serde::de;
 use serde::de::IntoDeserializer;
 
-use crate::datetime;
 use crate::tokens::{Error as TokenError, Span, Token, Tokenizer};
 
 /// Type Alias for a TOML Table pair
@@ -131,9 +130,6 @@ enum ErrorKind {
 
     /// A number failed to parse
     NumberInvalid,
-
-    /// A date or datetime was invalid
-    DateInvalid,
 
     /// Wanted one sort of token, but found another.
     Wanted {
@@ -714,10 +710,6 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
             E::Float(f) => visitor.visit_f64(f),
             E::String(Cow::Borrowed(s)) => visitor.visit_borrowed_str(s),
             E::String(Cow::Owned(s)) => visitor.visit_string(s),
-            E::Datetime(s) => visitor.visit_map(DatetimeDeserializer {
-                date: s,
-                visited: false,
-            }),
             E::Array(values) => {
                 let mut s = de::value::SeqDeserializer::new(values.into_iter());
                 let ret = visitor.visit_seq(&mut s)?;
@@ -740,22 +732,13 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
 
     fn deserialize_struct<V>(
         self,
-        name: &'static str,
+        _name: &'static str,
         fields: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value, Error>
     where
         V: de::Visitor<'de>,
     {
-        if name == datetime::NAME && fields == [datetime::FIELD] {
-            if let E::Datetime(s) = self.value.e {
-                return visitor.visit_map(DatetimeDeserializer {
-                    date: s,
-                    visited: false,
-                });
-            }
-        }
-
         if self.validate_struct_keys {
             match self.value.e {
                 E::InlineTable(ref values) | E::DottedTable(ref values) => {
@@ -880,52 +863,6 @@ impl<'de> de::IntoDeserializer<'de, Error> for Value<'de> {
 
     fn into_deserializer(self) -> Self::Deserializer {
         ValueDeserializer::new(self)
-    }
-}
-
-struct DatetimeDeserializer<'a> {
-    visited: bool,
-    date: &'a str,
-}
-
-impl<'de> de::MapAccess<'de> for DatetimeDeserializer<'de> {
-    type Error = Error;
-
-    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Error>
-    where
-        K: de::DeserializeSeed<'de>,
-    {
-        if self.visited {
-            return Ok(None);
-        }
-        self.visited = true;
-        seed.deserialize(DatetimeFieldDeserializer).map(Some)
-    }
-
-    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Error>
-    where
-        V: de::DeserializeSeed<'de>,
-    {
-        seed.deserialize(StrDeserializer::new(self.date.into()))
-    }
-}
-
-struct DatetimeFieldDeserializer;
-
-impl<'de> de::Deserializer<'de> for DatetimeFieldDeserializer {
-    type Error = Error;
-
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        visitor.visit_borrowed_str(datetime::FIELD)
-    }
-
-    serde::forward_to_deserialize_any! {
-        bool u8 u16 u32 u64 i8 i16 i32 i64 f32 f64 char str string seq
-        bytes byte_buf map struct option unit newtype_struct
-        ignored_any unit_struct tuple_struct tuple enum identifier
     }
 }
 
@@ -1314,36 +1251,13 @@ impl<'a> Deserializer<'a> {
 
     fn parse_keylike(&mut self, at: usize, span: Span, key: &'a str) -> Result<Value<'a>, Error> {
         if key == "inf" || key == "nan" {
-            return self.number_or_date(span, key);
+            return self.number(span, key);
         }
 
         let first_char = key.chars().next().expect("key should not be empty here");
         match first_char {
-            '-' | '0'..='9' => self.number_or_date(span, key),
+            '-' | '0'..='9' => self.number(span, key),
             _ => Err(self.error(at, ErrorKind::UnquotedString)),
-        }
-    }
-
-    fn number_or_date(&mut self, span: Span, s: &'a str) -> Result<Value<'a>, Error> {
-        if s.contains('T')
-            || s.contains('t')
-            || (s.len() > 1 && s[1..].contains('-') && !s.contains("e-") && !s.contains("E-"))
-        {
-            self.datetime(span, s, false)
-                .map(|(Span { start, end }, d)| Value {
-                    e: E::Datetime(d),
-                    start,
-                    end,
-                })
-        } else if self.eat(Token::Colon)? {
-            self.datetime(span, s, true)
-                .map(|(Span { start, end }, d)| Value {
-                    e: E::Datetime(d),
-                    start,
-                    end,
-                })
-        } else {
-            self.number(span, s)
         }
     }
 
@@ -1576,71 +1490,6 @@ impl<'a> Deserializer<'a> {
                     Err(self.error(start, ErrorKind::NumberInvalid))
                 }
             })
-    }
-
-    fn datetime(
-        &mut self,
-        mut span: Span,
-        date: &'a str,
-        colon_eaten: bool,
-    ) -> Result<(Span, &'a str), Error> {
-        let start = self.tokens.substr_offset(date);
-
-        // Check for space separated date and time.
-        let mut lookahead = self.tokens.clone();
-        if let Ok(Some((_, Token::Whitespace(" ")))) = lookahead.next() {
-            // Check if hour follows.
-            if let Ok(Some((_, Token::Keylike(_)))) = lookahead.next() {
-                self.next()?; // skip space
-                self.next()?; // skip keylike hour
-            }
-        }
-
-        if colon_eaten || self.eat(Token::Colon)? {
-            // minutes
-            match self.next()? {
-                Some((_, Token::Keylike(_))) => {}
-                _ => return Err(self.error(start, ErrorKind::DateInvalid)),
-            }
-            // Seconds
-            self.expect(Token::Colon)?;
-            match self.next()? {
-                Some((Span { end, .. }, Token::Keylike(_))) => {
-                    span.end = end;
-                }
-                _ => return Err(self.error(start, ErrorKind::DateInvalid)),
-            }
-            // Fractional seconds
-            if self.eat(Token::Period)? {
-                match self.next()? {
-                    Some((Span { end, .. }, Token::Keylike(_))) => {
-                        span.end = end;
-                    }
-                    _ => return Err(self.error(start, ErrorKind::DateInvalid)),
-                }
-            }
-
-            // offset
-            if self.eat(Token::Plus)? {
-                match self.next()? {
-                    Some((Span { end, .. }, Token::Keylike(_))) => {
-                        span.end = end;
-                    }
-                    _ => return Err(self.error(start, ErrorKind::DateInvalid)),
-                }
-            }
-            if self.eat(Token::Colon)? {
-                match self.next()? {
-                    Some((Span { end, .. }, Token::Keylike(_))) => {
-                        span.end = end;
-                    }
-                    _ => return Err(self.error(start, ErrorKind::DateInvalid)),
-                }
-            }
-        }
-
-        let end = self.tokens.current();
-        Ok((span, &self.tokens.input()[start..end]))
     }
 
     // TODO(#140): shouldn't buffer up this entire table in memory, it'd be
@@ -1971,7 +1820,6 @@ impl fmt::Display for Error {
                 write!(f, "expected {}, found {}", expected, found)?
             }
             ErrorKind::NumberInvalid => "invalid number".fmt(f)?,
-            ErrorKind::DateInvalid => "invalid date".fmt(f)?,
             ErrorKind::DuplicateTable(ref s) => {
                 write!(f, "redefinition of table `{}`", s)?;
             }
@@ -2091,7 +1939,6 @@ enum E<'a> {
     Float(f64),
     Boolean(bool),
     String(Cow<'a, str>),
-    Datetime(&'a str),
     Array(Vec<Value<'a>>),
     InlineTable(Vec<TablePair<'a>>),
     DottedTable(Vec<TablePair<'a>>),
@@ -2104,7 +1951,6 @@ impl<'a> E<'a> {
             E::Integer(..) => "integer",
             E::Float(..) => "float",
             E::Boolean(..) => "boolean",
-            E::Datetime(..) => "datetime",
             E::Array(..) => "array",
             E::InlineTable(..) => "inline table",
             E::DottedTable(..) => "dotted table",
