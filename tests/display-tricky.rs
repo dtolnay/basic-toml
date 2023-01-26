@@ -50,7 +50,6 @@ fn both_ends() {
     "#,
     )
     .unwrap();
-
-    let recipe_toml = toml::Value::try_from(recipe_fails).unwrap();
-    recipe_toml.to_string();
+    let err = toml::to_string(&recipe_fails).unwrap_err();
+    assert_eq!(err.to_string(), "values must be emitted before tables");
 }

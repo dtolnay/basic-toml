@@ -19,53 +19,7 @@
 //! The TOML format tends to be relatively common throughout the Rust community
 //! for configuration, notably being used by [Cargo], Rust's package manager.
 //!
-//! ## TOML values
-//!
-//! A value in TOML is represented with the [`Value`] enum in this crate:
-//!
-//! ```rust,ignore
-//! pub enum Value {
-//!     String(String),
-//!     Integer(i64),
-//!     Float(f64),
-//!     Boolean(bool),
-//!     Array(Array),
-//!     Table(Table),
-//! }
-//! ```
-//!
-//! ## Parsing TOML
-//!
-//! The easiest way to parse a TOML document is via the [`Value`] type:
-//!
-//! ```rust
-//! use toml::Value;
-//!
-//! let value = "foo = 'bar'".parse::<Value>().unwrap();
-//!
-//! assert_eq!(value["foo"].as_str(), Some("bar"));
-//! ```
-//!
-//! The [`Value`] type implements a number of convenience methods and
-//! traits; the example above uses [`FromStr`] to parse a [`str`] into a
-//! [`Value`].
-//!
 //! ## Deserialization and Serialization
-//!
-//! This crate supports [`serde`] 1.0 with a number of
-//! implementations of the `Deserialize`, `Serialize`, `Deserializer`, and
-//! `Serializer` traits. Namely, you'll find:
-//!
-//! * `Deserialize for Value`
-//! * `Serialize for Value`
-//! * `Deserializer for de::Deserializer`
-//! * `Serializer for ser::Serializer`
-//! * `Deserializer for Value`
-//!
-//! This means that you can use Serde to deserialize/serialize the
-//! [`Value`] type in this crate. You can also
-//! use the [`Deserializer`], [`Serializer`], or [`Value`] type itself to act as
-//! a deserializer/serializer for arbitrary types.
 //!
 //! An example of deserializing with TOML is:
 //!
@@ -145,11 +99,6 @@
 // and lets them ensure that there is indeed no unsafe code as opposed to
 // something they couldn't detect (e.g. unsafe added via macro expansion, etc).
 #![forbid(unsafe_code)]
-
-pub mod map;
-pub mod value;
-#[doc(no_inline)]
-pub use crate::value::Value;
 
 pub mod ser;
 #[doc(no_inline)]

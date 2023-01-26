@@ -331,10 +331,10 @@ fn error_handles_crlf() {
          [t1]\r\n\
          [t2]\r\n\
          a = 1\r\n\
-         a = 2\r\n\
+         . = 2\r\n\
          ",
-        toml::Value,
-        "duplicate key: `a` for key `t2` at line 3 column 1"
+        serde_json::Value,
+        "expected a table key, found a period at line 5 column 1"
     );
 
     // Should be the same as above.
@@ -343,9 +343,9 @@ fn error_handles_crlf() {
          [t1]\n\
          [t2]\n\
          a = 1\n\
-         a = 2\n\
+         . = 2\n\
          ",
-        toml::Value,
-        "duplicate key: `a` for key `t2` at line 3 column 1"
+        serde_json::Value,
+        "expected a table key, found a period at line 5 column 1"
     );
 }

@@ -2,10 +2,11 @@ extern crate serde;
 extern crate toml;
 
 use serde::de::Deserialize;
+use serde_json::{json, Value};
 
 macro_rules! bad {
     ($toml:expr, $msg:expr) => {
-        match $toml.parse::<toml::Value>() {
+        match toml::from_str::<Value>($toml) {
             Ok(s) => panic!("parsed to: {:#?}", s),
             Err(e) => assert_eq!(e.to_string(), $msg),
         }
@@ -25,9 +26,9 @@ fn newlines_after_tables() {
 
     let mut d = toml::de::Deserializer::new(s);
     d.set_require_newline_after_table(false);
-    let value = toml::Value::deserialize(&mut d).unwrap();
-    assert_eq!(value["a"]["foo"].as_integer(), Some(1));
-    assert_eq!(value["b"][0]["foo"].as_integer(), Some(1));
+    let value = Value::deserialize(&mut d).unwrap();
+    assert_eq!(value["a"]["foo"], json!(1));
+    assert_eq!(value["b"][0]["foo"], json!(1));
 }
 
 #[test]
@@ -49,11 +50,8 @@ fn allow_duplicate_after_longer() {
 
     let mut d = toml::de::Deserializer::new(s);
     d.set_allow_duplicate_after_longer_table(true);
-    let value = toml::Value::deserialize(&mut d).unwrap();
-    assert_eq!(
-        value["dependencies"]["openssl-sys"]["version"].as_integer(),
-        Some(1)
-    );
-    assert_eq!(value["dependencies"]["libc"].as_integer(), Some(1));
-    assert_eq!(value["dependencies"]["bitflags"].as_integer(), Some(1));
+    let value = Value::deserialize(&mut d).unwrap();
+    assert_eq!(value["dependencies"]["openssl-sys"]["version"], json!(1));
+    assert_eq!(value["dependencies"]["libc"], json!(1));
+    assert_eq!(value["dependencies"]["bitflags"], json!(1));
 }
