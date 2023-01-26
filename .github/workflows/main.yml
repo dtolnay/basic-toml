@@ -27,6 +27,17 @@ jobs:
           toolchain: ${{matrix.rust}}
       - run: cargo test
 
+  miri:
+    name: Miri
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@miri
+      - run: cargo miri test
+        env:
+          MIRIFLAGS: -Zmiri-strict-provenance
+
   outdated:
     name: Outdated
     runs-on: ubuntu-latest
