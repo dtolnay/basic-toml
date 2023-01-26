@@ -78,7 +78,7 @@ where
 }
 
 /// Errors that can occur when serializing a type.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     /// Indicates that a Rust type was requested to be serialized but it was not
     /// supported.
