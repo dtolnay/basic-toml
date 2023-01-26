@@ -290,17 +290,17 @@ fn bare_key_names() {
         'ʎǝʞ' = \"value\"
     ";
     let a: Value = toml::from_str(toml).unwrap();
-    &a["foo"];
-    &a["-"];
-    &a["_"];
-    &a["8"];
-    &a["foo_3"];
-    &a["foo_-2--3--r23f--4-f2-4"];
-    &a["a"];
-    &a["!"];
-    &a["\""];
-    &a["character encoding"];
-    &a["ʎǝʞ"];
+    let _ = &a["foo"];
+    let _ = &a["-"];
+    let _ = &a["_"];
+    let _ = &a["8"];
+    let _ = &a["foo_3"];
+    let _ = &a["foo_-2--3--r23f--4-f2-4"];
+    let _ = &a["a"];
+    let _ = &a["!"];
+    let _ = &a["\""];
+    let _ = &a["character encoding"];
+    let _ = &a["ʎǝʞ"];
 }
 
 #[test]
@@ -398,11 +398,11 @@ fn table_names() {
     ";
     let a: Value = toml::from_str(toml).unwrap();
     println!("{:?}", a);
-    &a["a"]["b"];
-    &a["f f"];
-    &a["f.f"];
-    &a["\""];
-    &a["\"\""];
+    let _ = &a["a"]["b"];
+    let _ = &a["f f"];
+    let _ = &a["f.f"];
+    let _ = &a["\""];
+    let _ = &a["\"\""];
 }
 
 #[test]
