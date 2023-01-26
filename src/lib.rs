@@ -97,7 +97,7 @@
 
 pub mod ser;
 #[doc(no_inline)]
-pub use crate::ser::{to_string, to_string_pretty, Serializer};
+pub use crate::ser::{to_string, Serializer};
 pub mod de;
 #[doc(no_inline)]
 pub use crate::de::{from_slice, from_str, Deserializer};

@@ -2,9 +2,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate toml;
 
-use serde::Serialize;
 use serde_json::{json, Value};
-use toml::to_string_pretty;
 
 fn to_json(toml: Value) -> Value {
     fn doit(s: &str, json: Value) -> Value {
@@ -51,48 +49,6 @@ fn to_json(toml: Value) -> Value {
     }
 }
 
-fn run_pretty(toml: Value) {
-    // Assert toml == json
-    println!("### pretty round trip parse.");
-
-    // standard pretty
-    let toml_raw = to_string_pretty(&toml).expect("to string");
-    let toml2: Value = toml::from_str(&toml_raw).expect("from string");
-    assert_eq!(toml, toml2);
-
-    // pretty with indent 2
-    let mut result = String::with_capacity(128);
-    {
-        let mut serializer = toml::Serializer::pretty(&mut result);
-        serializer.pretty_array_indent(2);
-        toml.serialize(&mut serializer).expect("to string");
-    }
-    assert_eq!(toml, toml::from_str::<Value>(&result).expect("from str"));
-    result.clear();
-    {
-        let mut serializer = toml::Serializer::new(&mut result);
-        serializer.pretty_array_trailing_comma(false);
-        toml.serialize(&mut serializer).expect("to string");
-    }
-    assert_eq!(toml, toml::from_str::<Value>(&result).expect("from str"));
-    result.clear();
-    {
-        let mut serializer = toml::Serializer::pretty(&mut result);
-        serializer.pretty_string(false);
-        toml.serialize(&mut serializer).expect("to string");
-        assert_eq!(toml, toml2);
-    }
-    assert_eq!(toml, toml::from_str::<Value>(&result).expect("from str"));
-    result.clear();
-    {
-        let mut serializer = toml::Serializer::pretty(&mut result);
-        serializer.pretty_array(false);
-        toml.serialize(&mut serializer).expect("to string");
-        assert_eq!(toml, toml2);
-    }
-    assert_eq!(toml, toml::from_str::<Value>(&result).expect("from str"));
-}
-
 fn run(toml_raw: &str, json_raw: &str) {
     println!("parsing:\n{}", toml_raw);
     let toml: Value = toml::from_str(toml_raw).unwrap();
@@ -111,7 +67,6 @@ fn run(toml_raw: &str, json_raw: &str) {
     println!("round trip parse: {}", toml);
     let toml2: Value = toml::from_str(&toml::to_string(&toml).unwrap()).unwrap();
     assert_eq!(toml, toml2);
-    run_pretty(toml);
 }
 
 macro_rules! test( ($name:ident, $toml:expr, $json:expr) => (

@@ -13,7 +13,6 @@
 use std::cell::Cell;
 use std::error;
 use std::fmt::{self, Write};
-use std::rc::Rc;
 
 use serde::ser;
 
@@ -64,19 +63,6 @@ where
     Ok(dst)
 }
 
-/// Serialize the given data structure as a "pretty" String of TOML.
-///
-/// This is identical to `to_string` except the output string has a more
-/// "pretty" output. See `Serializer::pretty` for more details.
-pub fn to_string_pretty<T: ?Sized>(value: &T) -> Result<String, Error>
-where
-    T: ser::Serialize,
-{
-    let mut dst = String::with_capacity(128);
-    value.serialize(&mut Serializer::pretty(&mut dst))?;
-    Ok(dst)
-}
-
 /// Errors that can occur when serializing a type.
 #[derive(Debug)]
 pub enum Error {
@@ -107,42 +93,6 @@ pub enum Error {
     Custom(String),
 }
 
-#[derive(Debug, Default)]
-/// Internal place for holding array settings
-struct ArraySettings {
-    indent: usize,
-    trailing_comma: bool,
-}
-
-impl ArraySettings {
-    fn pretty() -> ArraySettings {
-        ArraySettings {
-            indent: 4,
-            trailing_comma: true,
-        }
-    }
-}
-
-#[derive(Debug, Default)]
-/// String settings
-struct StringSettings {
-    /// Whether to use literal strings when possible
-    literal: bool,
-}
-
-impl StringSettings {
-    fn pretty() -> StringSettings {
-        StringSettings { literal: true }
-    }
-}
-
-#[derive(Debug, Default)]
-/// Internal struct for holding serialization settings
-struct Settings {
-    array: Option<ArraySettings>,
-    string: Option<StringSettings>,
-}
-
 /// Serialization implementation for TOML.
 ///
 /// This structure implements serialization support for TOML to serialize an
@@ -155,7 +105,6 @@ struct Settings {
 pub struct Serializer<'a> {
     dst: &'a mut String,
     state: State<'a>,
-    settings: Rc<Settings>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -206,175 +155,7 @@ impl<'a> Serializer<'a> {
         Serializer {
             dst,
             state: State::End,
-            settings: Rc::new(Settings::default()),
         }
-    }
-
-    /// Instantiate a "pretty" formatter
-    ///
-    /// By default this will use:
-    ///
-    /// - pretty strings: strings with newlines will use the `'''` syntax. See
-    ///   `Serializer::pretty_string`
-    /// - pretty arrays: each item in arrays will be on a newline, have an indentation of 4 and
-    ///   have a trailing comma. See `Serializer::pretty_array`
-    pub fn pretty(dst: &'a mut String) -> Serializer<'a> {
-        Serializer {
-            dst,
-            state: State::End,
-            settings: Rc::new(Settings {
-                array: Some(ArraySettings::pretty()),
-                string: Some(StringSettings::pretty()),
-            }),
-        }
-    }
-
-    /// Enable or Disable pretty strings
-    ///
-    /// If enabled, literal strings will be used when possible and strings with
-    /// one or more newlines will use triple quotes (i.e.: `'''` or `"""`)
-    ///
-    /// # Examples
-    ///
-    /// Instead of:
-    ///
-    /// ```toml,ignore
-    /// single = "no newlines"
-    /// text = "\nfoo\nbar\n"
-    /// ```
-    ///
-    /// You will have:
-    ///
-    /// ```toml,ignore
-    /// single = 'no newlines'
-    /// text = '''
-    /// foo
-    /// bar
-    /// '''
-    /// ```
-    pub fn pretty_string(&mut self, value: bool) -> &mut Self {
-        Rc::get_mut(&mut self.settings).unwrap().string = if value {
-            Some(StringSettings::pretty())
-        } else {
-            None
-        };
-        self
-    }
-
-    /// Enable or Disable Literal strings for pretty strings
-    ///
-    /// If enabled, literal strings will be used when possible and strings with
-    /// one or more newlines will use triple quotes (i.e.: `'''` or `"""`)
-    ///
-    /// If disabled, literal strings will NEVER be used and strings with one or
-    /// more newlines will use `"""`
-    ///
-    /// # Examples
-    ///
-    /// Instead of:
-    ///
-    /// ```toml,ignore
-    /// single = "no newlines"
-    /// text = "\nfoo\nbar\n"
-    /// ```
-    ///
-    /// You will have:
-    ///
-    /// ```toml,ignore
-    /// single = "no newlines"
-    /// text = """
-    /// foo
-    /// bar
-    /// """
-    /// ```
-    pub fn pretty_string_literal(&mut self, value: bool) -> &mut Self {
-        let use_default = if let Some(ref mut s) = Rc::get_mut(&mut self.settings).unwrap().string {
-            s.literal = value;
-            false
-        } else {
-            true
-        };
-
-        if use_default {
-            let mut string = StringSettings::pretty();
-            string.literal = value;
-            Rc::get_mut(&mut self.settings).unwrap().string = Some(string);
-        }
-        self
-    }
-
-    /// Enable or Disable pretty arrays
-    ///
-    /// If enabled, arrays will always have each item on their own line.
-    ///
-    /// Some specific features can be controlled via other builder methods:
-    ///
-    /// - `Serializer::pretty_array_indent`: set the indent to a value other
-    ///   than 4.
-    /// - `Serializer::pretty_array_trailing_comma`: enable/disable the trailing
-    ///   comma on the last item.
-    ///
-    /// # Examples
-    ///
-    /// Instead of:
-    ///
-    /// ```toml,ignore
-    /// array = ["foo", "bar"]
-    /// ```
-    ///
-    /// You will have:
-    ///
-    /// ```toml,ignore
-    /// array = [
-    ///     "foo",
-    ///     "bar",
-    /// ]
-    /// ```
-    pub fn pretty_array(&mut self, value: bool) -> &mut Self {
-        Rc::get_mut(&mut self.settings).unwrap().array = if value {
-            Some(ArraySettings::pretty())
-        } else {
-            None
-        };
-        self
-    }
-
-    /// Set the indent for pretty arrays
-    ///
-    /// See `Serializer::pretty_array` for more details.
-    pub fn pretty_array_indent(&mut self, value: usize) -> &mut Self {
-        let use_default = if let Some(ref mut a) = Rc::get_mut(&mut self.settings).unwrap().array {
-            a.indent = value;
-            false
-        } else {
-            true
-        };
-
-        if use_default {
-            let mut array = ArraySettings::pretty();
-            array.indent = value;
-            Rc::get_mut(&mut self.settings).unwrap().array = Some(array);
-        }
-        self
-    }
-
-    /// Specify whether to use a trailing comma when serializing pretty arrays
-    ///
-    /// See `Serializer::pretty_array` for more details.
-    pub fn pretty_array_trailing_comma(&mut self, value: bool) -> &mut Self {
-        let use_default = if let Some(ref mut a) = Rc::get_mut(&mut self.settings).unwrap().array {
-            a.trailing_comma = value;
-            false
-        } else {
-            true
-        };
-
-        if use_default {
-            let mut array = ArraySettings::pretty();
-            array.trailing_comma = value;
-            Rc::get_mut(&mut self.settings).unwrap().array = Some(array);
-        }
-        self
     }
 
     fn display<T: fmt::Display>(&mut self, t: T, type_: ArrayState) -> Result<(), Error> {
@@ -428,25 +209,11 @@ impl<'a> Serializer<'a> {
         }
     }
 
-    fn emit_array(&mut self, first: &Cell<bool>, len: Option<usize>) -> Result<(), Error> {
-        match (len, &self.settings.array) {
-            (Some(0..=1), _) | (_, &None) => {
-                if first.get() {
-                    self.dst.push_str("[")
-                } else {
-                    self.dst.push_str(", ")
-                }
-            }
-            (_, &Some(ref a)) => {
-                if first.get() {
-                    self.dst.push_str("[\n")
-                } else {
-                    self.dst.push_str(",\n")
-                }
-                for _ in 0..a.indent {
-                    self.dst.push_str(" ");
-                }
-            }
+    fn emit_array(&mut self, first: &Cell<bool>, _len: Option<usize>) -> Result<(), Error> {
+        if first.get() {
+            self.dst.push_str("[")
+        } else {
+            self.dst.push_str(", ")
         }
         Ok(())
     }
@@ -471,149 +238,29 @@ impl<'a> Serializer<'a> {
         if ok {
             write!(self.dst, "{}", key).map_err(ser::Error::custom)?;
         } else {
-            self.emit_str(key, true)?;
+            self.emit_str(key)?;
         }
         Ok(())
     }
 
-    fn emit_str(&mut self, value: &str, is_key: bool) -> Result<(), Error> {
-        #[derive(PartialEq)]
-        enum Type {
-            NewlineTripple,
-            OnelineTripple,
-            OnelineSingle,
-        }
-
-        enum Repr {
-            /// represent as a literal string (using '')
-            Literal(String, Type),
-            /// represent the std way (using "")
-            Std(Type),
-        }
-
-        fn do_pretty(value: &str) -> Repr {
-            // For doing pretty prints we store in a new String
-            // because there are too many cases where pretty cannot
-            // work. We need to determine:
-            // - if we are a "multi-line" pretty (if there are \n)
-            // - if ['''] appears if multi or ['] if single
-            // - if there are any invalid control characters
-            //
-            // Doing it any other way would require multiple passes
-            // to determine if a pretty string works or not.
-            let mut out = String::with_capacity(value.len() * 2);
-            let mut ty = Type::OnelineSingle;
-            // found consecutive single quotes
-            let mut max_found_singles = 0;
-            let mut found_singles = 0;
-            let mut can_be_pretty = true;
-
-            for ch in value.chars() {
-                if can_be_pretty {
-                    if ch == '\'' {
-                        found_singles += 1;
-                        if found_singles >= 3 {
-                            can_be_pretty = false;
-                        }
-                    } else {
-                        if found_singles > max_found_singles {
-                            max_found_singles = found_singles;
-                        }
-                        found_singles = 0
-                    }
-                    match ch {
-                        '\t' => {}
-                        '\n' => ty = Type::NewlineTripple,
-                        // Escape codes are needed if any ascii control
-                        // characters are present, including \b \f \r.
-                        c if c <= '\u{1f}' || c == '\u{7f}' => can_be_pretty = false,
-                        _ => {}
-                    }
-                    out.push(ch);
-                } else {
-                    // the string cannot be represented as pretty,
-                    // still check if it should be multiline
-                    if ch == '\n' {
-                        ty = Type::NewlineTripple;
-                    }
+    fn emit_str(&mut self, value: &str) -> Result<(), Error> {
+        self.dst.push('"');
+        for ch in value.chars() {
+            match ch {
+                '\u{8}' => self.dst.push_str("\\b"),
+                '\u{9}' => self.dst.push_str("\\t"),
+                '\u{a}' => self.dst.push_str("\\n"),
+                '\u{c}' => self.dst.push_str("\\f"),
+                '\u{d}' => self.dst.push_str("\\r"),
+                '\u{22}' => self.dst.push_str("\\\""),
+                '\u{5c}' => self.dst.push_str("\\\\"),
+                c if c <= '\u{1f}' || c == '\u{7f}' => {
+                    write!(self.dst, "\\u{:04X}", ch as u32).map_err(ser::Error::custom)?;
                 }
-            }
-            if can_be_pretty && found_singles > 0 && value.ends_with('\'') {
-                // We cannot escape the ending quote so we must use """
-                can_be_pretty = false;
-            }
-            if !can_be_pretty {
-                debug_assert!(ty != Type::OnelineTripple);
-                return Repr::Std(ty);
-            }
-            if found_singles > max_found_singles {
-                max_found_singles = found_singles;
-            }
-            debug_assert!(max_found_singles < 3);
-            if ty == Type::OnelineSingle && max_found_singles >= 1 {
-                // no newlines, but must use ''' because it has ' in it
-                ty = Type::OnelineTripple;
-            }
-            Repr::Literal(out, ty)
-        }
-
-        let repr = if !is_key && self.settings.string.is_some() {
-            match (&self.settings.string, do_pretty(value)) {
-                (&Some(StringSettings { literal: false, .. }), Repr::Literal(_, ty)) => {
-                    Repr::Std(ty)
-                }
-                (_, r) => r,
-            }
-        } else {
-            Repr::Std(Type::OnelineSingle)
-        };
-        match repr {
-            Repr::Literal(literal, ty) => {
-                // A pretty string
-                match ty {
-                    Type::NewlineTripple => self.dst.push_str("'''\n"),
-                    Type::OnelineTripple => self.dst.push_str("'''"),
-                    Type::OnelineSingle => self.dst.push('\''),
-                }
-                self.dst.push_str(&literal);
-                match ty {
-                    Type::OnelineSingle => self.dst.push('\''),
-                    _ => self.dst.push_str("'''"),
-                }
-            }
-            Repr::Std(ty) => {
-                match ty {
-                    Type::NewlineTripple => self.dst.push_str("\"\"\"\n"),
-                    // note: OnelineTripple can happen if do_pretty wants to do
-                    // '''it's one line'''
-                    // but settings.string.literal == false
-                    Type::OnelineSingle | Type::OnelineTripple => self.dst.push('"'),
-                }
-                for ch in value.chars() {
-                    match ch {
-                        '\u{8}' => self.dst.push_str("\\b"),
-                        '\u{9}' => self.dst.push_str("\\t"),
-                        '\u{a}' => match ty {
-                            Type::NewlineTripple => self.dst.push('\n'),
-                            Type::OnelineSingle => self.dst.push_str("\\n"),
-                            _ => unreachable!(),
-                        },
-                        '\u{c}' => self.dst.push_str("\\f"),
-                        '\u{d}' => self.dst.push_str("\\r"),
-                        '\u{22}' => self.dst.push_str("\\\""),
-                        '\u{5c}' => self.dst.push_str("\\\\"),
-                        c if c <= '\u{1f}' || c == '\u{7f}' => {
-                            write!(self.dst, "\\u{:04X}", ch as u32).map_err(ser::Error::custom)?;
-                        }
-                        ch => self.dst.push(ch),
-                    }
-                }
-                match ty {
-                    Type::NewlineTripple => self.dst.push_str("\"\"\""),
-                    Type::OnelineSingle | Type::OnelineTripple => self.dst.push('"'),
-                }
+                ch => self.dst.push(ch),
             }
         }
+        self.dst.push('"');
         Ok(())
     }
 
@@ -790,7 +437,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
 
     fn serialize_str(self, value: &str) -> Result<(), Self::Error> {
         self.emit_key(ArrayState::Started)?;
-        self.emit_str(value, false)?;
+        self.emit_str(value)?;
         if let State::Table { .. } = self.state {
             self.dst.push_str("\n");
         }
@@ -937,7 +584,6 @@ impl<'a, 'b> ser::SerializeSeq for SerializeSeq<'a, 'b> {
                 type_: &self.type_,
                 len: self.len,
             },
-            settings: self.ser.settings.clone(),
         })?;
         self.first.set(false);
         Ok(())
@@ -946,17 +592,7 @@ impl<'a, 'b> ser::SerializeSeq for SerializeSeq<'a, 'b> {
     fn end(self) -> Result<(), Error> {
         match self.type_.get() {
             Some(ArrayState::StartedAsATable) => return Ok(()),
-            Some(ArrayState::Started) => match (self.len, &self.ser.settings.array) {
-                (Some(0..=1), _) | (_, &None) => {
-                    self.ser.dst.push_str("]");
-                }
-                (_, &Some(ref a)) => {
-                    if a.trailing_comma {
-                        self.ser.dst.push_str(",");
-                    }
-                    self.ser.dst.push_str("\n]");
-                }
-            },
+            Some(ArrayState::Started) => self.ser.dst.push_str("]"),
             None => {
                 assert!(self.first.get());
                 self.ser.emit_key(ArrayState::Started)?;
@@ -1042,7 +678,6 @@ impl<'a, 'b> ser::SerializeMap for SerializeTable<'a, 'b> {
                 first: &self.first,
                 table_emitted: &self.table_emitted,
             },
-            settings: self.ser.settings.clone(),
         });
         match res {
             Ok(()) => self.first.set(false),
@@ -1077,7 +712,6 @@ impl<'a, 'b> ser::SerializeStruct for SerializeTable<'a, 'b> {
                 first: &self.first,
                 table_emitted: &self.table_emitted,
             },
-            settings: self.ser.settings.clone(),
         });
         match res {
             Ok(()) => self.first.set(false),
