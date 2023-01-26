@@ -17,18 +17,6 @@ use std::rc::Rc;
 
 use serde::ser;
 
-/// Serialize the given data structure as a TOML byte vector.
-///
-/// Serialization can fail if `T`'s implementation of `Serialize` decides to
-/// fail, if `T` contains a map with non-string keys, or if `T` attempts to
-/// serialize an unsupported datatype such as an enum, tuple, or tuple struct.
-pub fn to_vec<T: ?Sized>(value: &T) -> Result<Vec<u8>, Error>
-where
-    T: ser::Serialize,
-{
-    to_string(value).map(|e| e.into_bytes())
-}
-
 /// Serialize the given data structure as a String of TOML.
 ///
 /// Serialization can fail if `T`'s implementation of `Serialize` decides to
