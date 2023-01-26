@@ -73,9 +73,7 @@ where
     T: de::Deserialize<'de>,
 {
     let mut d = Deserializer::new(s);
-    let ret = T::deserialize(&mut d)?;
-    d.end()?;
-    Ok(ret)
+    T::deserialize(&mut d)
 }
 
 /// Errors that can occur when deserializing a type.
@@ -1052,14 +1050,6 @@ impl<'a> Deserializer<'a> {
             tokens: Tokenizer::new(input),
             input,
         }
-    }
-
-    /// The `Deserializer::end` method should be called after a value has been
-    /// fully deserialized.  This allows the `Deserializer` to validate that the
-    /// input stream is at the end or that it only has trailing
-    /// whitespace/comments.
-    pub fn end(&mut self) -> Result<(), Error> {
-        Ok(())
     }
 
     fn tables(&mut self) -> Result<Vec<Table<'a>>, Error> {
