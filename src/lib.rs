@@ -102,7 +102,6 @@
     clippy::needless_doctest_main,
     clippy::needless_pass_by_value,
     clippy::similar_names,
-    clippy::single_char_add_str,
     clippy::suspicious_to_owned,
     clippy::type_complexity,
     clippy::uninlined_format_args,

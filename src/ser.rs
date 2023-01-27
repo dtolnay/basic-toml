@@ -130,7 +130,7 @@ impl<'a> Serializer<'a> {
         self.emit_key(type_)?;
         write!(self.dst, "{}", t).map_err(ser::Error::custom)?;
         if let State::Table { .. } = self.state {
-            self.dst.push_str("\n");
+            self.dst.push('\n');
         }
         Ok(())
     }
@@ -179,7 +179,7 @@ impl<'a> Serializer<'a> {
 
     fn emit_array(&mut self, first: &Cell<bool>, _len: Option<usize>) -> Result<(), Error> {
         if first.get() {
-            self.dst.push_str("[");
+            self.dst.push('[');
         } else {
             self.dst.push_str(", ");
         }
@@ -284,13 +284,13 @@ impl<'a> Serializer<'a> {
             }
             State::End => {}
         }
-        self.dst.push_str("[");
+        self.dst.push('[');
         if array_of_tables {
-            self.dst.push_str("[");
+            self.dst.push('[');
         }
         self.emit_key_part(state)?;
         if array_of_tables {
-            self.dst.push_str("]");
+            self.dst.push(']');
         }
         self.dst.push_str("]\n");
         Ok(())
@@ -309,7 +309,7 @@ impl<'a> Serializer<'a> {
                 table_emitted.set(true);
                 let first = self.emit_key_part(parent)?;
                 if !first {
-                    self.dst.push_str(".");
+                    self.dst.push('.');
                 }
                 self.escape_key(key)?;
                 Ok(false)
@@ -407,7 +407,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         self.emit_key(ArrayState::Started)?;
         self.emit_str(value)?;
         if let State::Table { .. } = self.state {
-            self.dst.push_str("\n");
+            self.dst.push('\n');
         }
         Ok(())
     }
@@ -559,7 +559,7 @@ impl<'a, 'b> ser::SerializeSeq for SerializeSeq<'a, 'b> {
     fn end(self) -> Result<(), Error> {
         match self.type_.get() {
             Some(ArrayState::StartedAsATable) => return Ok(()),
-            Some(ArrayState::Started) => self.ser.dst.push_str("]"),
+            Some(ArrayState::Started) => self.ser.dst.push(']'),
             None => {
                 assert!(self.first.get());
                 self.ser.emit_key(ArrayState::Started)?;
@@ -567,7 +567,7 @@ impl<'a, 'b> ser::SerializeSeq for SerializeSeq<'a, 'b> {
             }
         }
         if let State::Table { .. } = self.ser.state {
-            self.ser.dst.push_str("\n");
+            self.ser.dst.push('\n');
         }
         Ok(())
     }

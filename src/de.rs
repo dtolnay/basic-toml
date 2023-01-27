@@ -1403,11 +1403,11 @@ impl<'a> Deserializer<'a> {
             .filter(|c| *c != '_')
             .collect::<String>();
         if let Some(fraction) = fraction {
-            number.push_str(".");
+            number.push('.');
             number.extend(fraction.chars().filter(|c| *c != '_'));
         }
         if let Some(exponent) = exponent {
-            number.push_str("E");
+            number.push('E');
             number.extend(exponent.chars().filter(|c| *c != '_'));
         }
         number
