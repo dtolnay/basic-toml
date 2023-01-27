@@ -98,6 +98,12 @@
 //!     print!("{}", toml);
 //! }
 //! ```
+//!
+//! # Spec compatibility
+//!
+//! TOML v0.5.0.
+//!
+//! TOML's date and time syntax are not supported.
 
 #![deny(missing_docs)]
 #![allow(
