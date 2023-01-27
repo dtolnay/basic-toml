@@ -1,3 +1,11 @@
+//! [![github]](https://github.com/dtolnay/basic-toml)&ensp;[![crates-io]](https://crates.io/crates/basic-toml)&ensp;[![docs-rs]](https://docs.rs/basic-toml)
+//!
+//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
+//! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
+//! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
+//!
+//! <br>
+//!
 //! A library for parsing and producing data in [TOML] format using [Serde].
 //!
 //! TOML is designed to be "a config file format for humans": minimal and easy
