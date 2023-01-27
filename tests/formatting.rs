@@ -1,5 +1,3 @@
-#![allow(clippy::single_char_pattern)]
-
 use basic_toml::to_string;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +33,7 @@ fn no_unnecessary_newlines_array() {
         ],
     })
     .unwrap()
-    .starts_with("\n"));
+    .starts_with('\n'));
 }
 
 #[test]
@@ -51,5 +49,5 @@ fn no_unnecessary_newlines_table() {
         },
     })
     .unwrap()
-    .starts_with("\n"));
+    .starts_with('\n'));
 }

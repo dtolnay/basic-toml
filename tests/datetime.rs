@@ -1,5 +1,3 @@
-#![allow(clippy::single_char_pattern)]
-
 use serde_json::Value;
 
 macro_rules! bad {
@@ -15,9 +13,9 @@ macro_rules! bad {
 fn times() {
     fn multi_bad(s: &str, msg: &str) {
         bad!(s, msg);
-        bad!(&s.replace("T", " "), msg);
-        bad!(&s.replace("T", "t"), msg);
-        bad!(&s.replace("Z", "z"), msg);
+        bad!(&s.replace('T', " "), msg);
+        bad!(&s.replace('T', "t"), msg);
+        bad!(&s.replace('Z', "z"), msg);
     }
 
     multi_bad(

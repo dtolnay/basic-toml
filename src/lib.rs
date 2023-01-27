@@ -122,7 +122,6 @@
     clippy::semicolon_if_nothing_returned,
     clippy::similar_names,
     clippy::single_char_add_str,
-    clippy::single_char_pattern,
     clippy::suspicious_to_owned,
     clippy::type_complexity,
     clippy::uninlined_format_args,
