@@ -535,8 +535,8 @@ impl<'de, 'b> de::SeqAccess<'de> for MapVisitor<'de, 'b> {
             array: false,
             table_indices: self.table_indices,
             table_pindices: self.table_pindices,
-            tables: &mut self.tables,
-            de: &mut self.de,
+            tables: self.tables,
+            de: self.de,
         })?;
         self.cur_parent = next;
         Ok(Some(ret))
@@ -1314,7 +1314,7 @@ impl<'a> Deserializer<'a> {
         if !suffix.is_empty() {
             return Err(self.error(start, ErrorKind::NumberInvalid));
         }
-        i64::from_str_radix(&prefix.replace('_', "").trim_start_matches('+'), radix)
+        i64::from_str_radix(prefix.replace('_', "").trim_start_matches('+'), radix)
             .map_err(|_e| self.error(start, ErrorKind::NumberInvalid))
     }
 

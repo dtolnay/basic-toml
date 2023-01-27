@@ -99,8 +99,6 @@
     clippy::match_like_matches_macro,
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
-    clippy::needless_borrow,
-    clippy::needless_borrowed_reference,
     clippy::needless_doctest_main,
     clippy::needless_lifetimes,
     clippy::needless_pass_by_value,
