@@ -1247,12 +1247,12 @@ impl<'a> Deserializer<'a> {
             start,
             end,
         };
-        if s.starts_with("0x") {
-            self.integer(&s[2..], 16).map(to_integer)
-        } else if s.starts_with("0o") {
-            self.integer(&s[2..], 8).map(to_integer)
-        } else if s.starts_with("0b") {
-            self.integer(&s[2..], 2).map(to_integer)
+        if let Some(s) = s.strip_prefix("0x") {
+            self.integer(s, 16).map(to_integer)
+        } else if let Some(s) = s.strip_prefix("0o") {
+            self.integer(s, 8).map(to_integer)
+        } else if let Some(s) = s.strip_prefix("0b") {
+            self.integer(s, 2).map(to_integer)
         } else if s.contains('e') || s.contains('E') {
             self.float(s, None).map(|f| Value {
                 e: E::Float(f),

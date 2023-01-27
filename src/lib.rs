@@ -96,7 +96,6 @@
     clippy::bool_to_int_with_if,
     clippy::manual_let_else,
     clippy::manual_range_contains,
-    clippy::manual_strip,
     clippy::map_identity,
     clippy::map_unwrap_or,
     clippy::match_like_matches_macro,
