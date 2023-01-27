@@ -6,7 +6,7 @@
 //! ```toml
 //! [package]
 //! name = "basic-toml"
-//! version = "0.0.0"
+#![doc = concat!("version = \"", env!("CARGO_PKG_VERSION_MAJOR"), ".", env!("CARGO_PKG_VERSION_MINOR"), ".", env!("CARGO_PKG_VERSION_PATCH"), "\"")]
 //! authors = ["Alex Crichton <alex@alexcrichton.com>"]
 //!
 //! [dependencies]
@@ -46,7 +46,7 @@
 //!     let manifest: Manifest = basic_toml::from_str(r#"
 //!         [package]
 //!         name = "basic-toml"
-//!         version = "0.0.0"
+#![doc = concat!("        version = \"", env!("CARGO_PKG_VERSION_MAJOR"), ".", env!("CARGO_PKG_VERSION_MINOR"), ".", env!("CARGO_PKG_VERSION_PATCH"), "\"")]
 //!         authors = ["Alex Crichton <alex@alexcrichton.com>"]
 //!
 //!         [dependencies]
@@ -54,7 +54,7 @@
 //!     "#).unwrap();
 //!
 //!     assert_eq!(manifest.package.name, "basic-toml");
-//!     assert_eq!(manifest.package.version, Version::new(0, 0, 0));
+#![doc = concat!("    assert_eq!(manifest.package.version, Version::new(", env!("CARGO_PKG_VERSION_MAJOR"), ", ", env!("CARGO_PKG_VERSION_MINOR"), ", ", env!("CARGO_PKG_VERSION_PATCH"), "));")]
 //!     assert_eq!(manifest.package.authors, ["Alex Crichton <alex@alexcrichton.com>"]);
 //!     assert_eq!(manifest.dependencies["serde"].to_string(), "^1.0");
 //! }
@@ -84,7 +84,7 @@
 //!     let manifest = Manifest {
 //!         package: Package {
 //!             name: "basic-toml".to_owned(),
-//!             version: Version::new(0, 0, 0),
+#![doc = concat!("            version: Version::new(", env!("CARGO_PKG_VERSION_MAJOR"), ", ", env!("CARGO_PKG_VERSION_MINOR"), ", ", env!("CARGO_PKG_VERSION_PATCH"), "),")]
 //!             authors: vec!["Alex Crichton <alex@alexcrichton.com>".to_owned()],
 //!         },
 //!         dependencies: {
