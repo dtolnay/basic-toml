@@ -198,7 +198,7 @@ impl<'a> Serializer<'a> {
     }
 
     fn escape_key(&mut self, key: &str) -> Result<(), Error> {
-        let ok = key.len() > 0
+        let ok = !key.is_empty()
             && key.chars().all(|c| match c {
                 'a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' => true,
                 _ => false,

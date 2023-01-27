@@ -94,7 +94,6 @@
 #![deny(missing_docs)]
 #![allow(
     clippy::bool_to_int_with_if,
-    clippy::len_zero,
     clippy::manual_let_else,
     clippy::manual_range_contains,
     clippy::manual_strip,
