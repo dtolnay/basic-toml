@@ -1,8 +1,8 @@
 //! A [TOML]-parsing library
 //!
-//! This library implements a [TOML] v0.5.0 compatible parser,
-//! primarily supporting the [`serde`] library for encoding/decoding
-//! various types in Rust.
+//! This library implements a [TOML] v0.5.0 compatible parser, primarily
+//! supporting the [`serde`] library for encoding/decoding various types in
+//! Rust.
 //!
 //! TOML itself is a simple, ergonomic, and readable configuration format:
 //!

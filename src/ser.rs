@@ -238,8 +238,8 @@ impl<'a> Serializer<'a> {
             State::Table { .. } => false,
         };
 
-        // Unlike [..]s, we can't omit [[..]] ancestors, so be sure to emit table
-        // headers for them.
+        // Unlike [..]s, we can't omit [[..]] ancestors, so be sure to emit
+        // table headers for them.
         let mut p = state;
         if let State::Array { first, parent, .. } = *state {
             if first.get() {
@@ -264,8 +264,8 @@ impl<'a> Serializer<'a> {
         match *state {
             State::Table { first, .. } => {
                 if !first.get() {
-                    // Newline if we are a table that is not the first
-                    // table in the document.
+                    // Newline if we are a table that is not the first table in
+                    // the document.
                     self.dst.push('\n');
                 }
             }
