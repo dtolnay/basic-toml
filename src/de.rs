@@ -1740,7 +1740,7 @@ impl Display for Error {
             ErrorKind::UnterminatedString => "unterminated string".fmt(f)?,
             ErrorKind::NewlineInTableKey => "found newline in table key".fmt(f)?,
             ErrorKind::Wanted { expected, found } => {
-                write!(f, "expected {}, found {}", expected, found)?
+                write!(f, "expected {}, found {}", expected, found)?;
             }
             ErrorKind::NumberInvalid => "invalid number".fmt(f)?,
             ErrorKind::DuplicateTable(ref s) => {
@@ -1757,7 +1757,7 @@ impl Display for Error {
             } => write!(f, "expected table key `{}`, but was `{}`", expected, found)?,
             ErrorKind::ExpectedEmptyTable => "expected empty table".fmt(f)?,
             ErrorKind::DottedKeyInvalidType => {
-                "dotted key attempted to extend non-table type".fmt(f)?
+                "dotted key attempted to extend non-table type".fmt(f)?;
             }
             ErrorKind::UnexpectedKeys {
                 ref keys,

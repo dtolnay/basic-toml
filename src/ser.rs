@@ -179,9 +179,9 @@ impl<'a> Serializer<'a> {
 
     fn emit_array(&mut self, first: &Cell<bool>, _len: Option<usize>) -> Result<(), Error> {
         if first.get() {
-            self.dst.push_str("[")
+            self.dst.push_str("[");
         } else {
-            self.dst.push_str(", ")
+            self.dst.push_str(", ");
         }
         Ok(())
     }
@@ -563,7 +563,7 @@ impl<'a, 'b> ser::SerializeSeq for SerializeSeq<'a, 'b> {
             None => {
                 assert!(self.first.get());
                 self.ser.emit_key(ArrayState::Started)?;
-                self.ser.dst.push_str("[]")
+                self.ser.dst.push_str("[]");
             }
         }
         if let State::Table { .. } = self.ser.state {

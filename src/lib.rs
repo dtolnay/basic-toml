@@ -101,7 +101,6 @@
     clippy::must_use_candidate,
     clippy::needless_doctest_main,
     clippy::needless_pass_by_value,
-    clippy::semicolon_if_nothing_returned,
     clippy::similar_names,
     clippy::single_char_add_str,
     clippy::suspicious_to_owned,
