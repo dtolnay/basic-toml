@@ -301,7 +301,7 @@ impl<'a> Tokenizer<'a> {
         }
         let mut val = MaybeString::NotEscaped(self.current());
         let mut n = 0;
-        'outer: loop {
+        loop {
             n += 1;
             match self.one() {
                 Some((i, '\n')) => {
@@ -322,12 +322,12 @@ impl<'a> Tokenizer<'a> {
                     if multiline {
                         if !self.eatc(delim) {
                             val.push(delim);
-                            continue 'outer;
+                            continue;
                         }
                         if !self.eatc(delim) {
                             val.push(delim);
                             val.push(delim);
-                            continue 'outer;
+                            continue;
                         }
                         if self.eatc(delim) {
                             val.push(delim);
