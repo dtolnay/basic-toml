@@ -471,8 +471,8 @@ impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
             cur: 0,
             max: self.max,
             array,
-            table_indices: &*self.table_indices,
-            table_pindices: &*self.table_pindices,
+            table_indices: self.table_indices,
+            table_pindices: self.table_pindices,
             tables: &mut *self.tables,
             de: &mut *self.de,
         });
@@ -533,8 +533,8 @@ impl<'de, 'b> de::SeqAccess<'de> for MapVisitor<'de, 'b> {
             max: next,
             cur: 0,
             array: false,
-            table_indices: &*self.table_indices,
-            table_pindices: &*self.table_pindices,
+            table_indices: self.table_indices,
+            table_pindices: self.table_pindices,
             tables: &mut self.tables,
             de: &mut self.de,
         })?;
