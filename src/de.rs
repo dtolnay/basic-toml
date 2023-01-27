@@ -1828,7 +1828,7 @@ impl<'a> Header<'a> {
         if self.first || self.tokens.eat(Token::Period)? {
             self.first = false;
             self.tokens.eat_whitespace()?;
-            self.tokens.table_key().map(|t| t).map(Some)
+            self.tokens.table_key().map(Some)
         } else {
             self.tokens.expect(Token::RightBracket)?;
             if self.array {
