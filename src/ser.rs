@@ -38,8 +38,16 @@ use std::fmt::{self, Display, Write};
 ///     };
 ///
 ///     let toml = basic_toml::to_string(&config).unwrap();
-///     println!("{}", toml)
+///     print!("{}", toml)
 /// }
+/// ```
+///
+/// ```toml
+/// [database]
+/// ip = "192.168.1.1"
+/// port = [8001, 8002, 8003]
+/// connection_max = 5000
+/// enabled = false
 /// ```
 pub fn to_string<T: ?Sized>(value: &T) -> Result<String, crate::Error>
 where
