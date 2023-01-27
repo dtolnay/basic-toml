@@ -15,7 +15,7 @@ before the `toml_edit` rewrite).
 
 ```toml
 [dependencies]
-basic-toml = "0.0"
+basic-toml = "0.1"
 ```
 
 <br>
