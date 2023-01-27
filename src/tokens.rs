@@ -372,11 +372,11 @@ impl<'a> Tokenizer<'a> {
                     Some((_, 'n')) => val.push('\n'),
                     Some((_, 'r')) => val.push('\r'),
                     Some((_, 't')) => val.push('\t'),
-                    Some((i, c @ 'u')) | Some((i, c @ 'U')) => {
+                    Some((i, c @ ('u' | 'U'))) => {
                         let len = if c == 'u' { 4 } else { 8 };
                         val.push(me.hex(start, i, len)?);
                     }
-                    Some((i, c @ ' ')) | Some((i, c @ '\t')) | Some((i, c @ '\n')) if multi => {
+                    Some((i, c @ (' ' | '\t' | '\n'))) if multi => {
                         if c != '\n' {
                             while let Some((_, ch)) = me.chars.clone().next() {
                                 match ch {
