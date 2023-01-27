@@ -1313,7 +1313,7 @@ impl<'a> Deserializer<'a> {
         let allow_leading_zeros = radix != 10;
         let (prefix, suffix) = self.parse_integer(s, allow_sign, allow_leading_zeros, radix)?;
         let start = self.tokens.substr_offset(s);
-        if suffix != "" {
+        if !suffix.is_empty() {
             return Err(self.error(start, ErrorKind::NumberInvalid));
         }
         i64::from_str_radix(&prefix.replace('_', "").trim_start_matches('+'), radix)
@@ -1368,7 +1368,7 @@ impl<'a> Deserializer<'a> {
 
         let mut fraction = None;
         if let Some(after) = after_decimal {
-            if suffix != "" {
+            if !suffix.is_empty() {
                 return Err(self.error(start, ErrorKind::NumberInvalid));
             }
             let (a, b) = self.parse_integer(after, false, true, 10)?;
@@ -1387,7 +1387,7 @@ impl<'a> Deserializer<'a> {
             } else {
                 self.parse_integer(&suffix[1..], true, true, 10)?
             };
-            if b != "" {
+            if !b.is_empty() {
                 return Err(self.error(start, ErrorKind::NumberInvalid));
             }
             exponent = Some(a);
