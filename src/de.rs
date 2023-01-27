@@ -22,7 +22,7 @@ where
 {
     match str::from_utf8(bytes) {
         Ok(s) => from_str(s),
-        Err(e) => Err(crate::Error::from(Error::custom(None, e.to_string()))),
+        Err(e) => Err(crate::Error::from(*Error::custom(None, e.to_string()))),
     }
 }
 
@@ -64,8 +64,7 @@ where
     T: de::Deserialize<'de>,
 {
     let mut d = Deserializer::new(s);
-    let t = T::deserialize(&mut d)?;
-    Ok(t)
+    T::deserialize(&mut d).map_err(|e| crate::Error::from(*e))
 }
 
 #[derive(Debug)]
@@ -178,9 +177,9 @@ struct Deserializer<'a> {
 }
 
 impl<'de, 'b> de::Deserializer<'de> for &'b mut Deserializer<'de> {
-    type Error = Error;
+    type Error = Box<Error>;
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -220,7 +219,7 @@ impl<'de, 'b> de::Deserializer<'de> for &'b mut Deserializer<'de> {
         _name: &'static str,
         _variants: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value, Error>
+    ) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -344,9 +343,9 @@ struct MapVisitor<'de, 'b> {
 }
 
 impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
-    type Error = Error;
+    type Error = Box<Error>;
 
-    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Error>
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Box<Error>>
     where
         K: de::DeserializeSeed<'de>,
     {
@@ -446,7 +445,7 @@ impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
         }
     }
 
-    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Error>
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Box<Error>>
     where
         V: de::DeserializeSeed<'de>,
     {
@@ -484,9 +483,9 @@ impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
 }
 
 impl<'de, 'b> de::SeqAccess<'de> for MapVisitor<'de, 'b> {
-    type Error = Error;
+    type Error = Box<Error>;
 
-    fn next_element_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Error>
+    fn next_element_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Box<Error>>
     where
         K: de::DeserializeSeed<'de>,
     {
@@ -544,9 +543,9 @@ impl<'de, 'b> de::SeqAccess<'de> for MapVisitor<'de, 'b> {
 }
 
 impl<'de, 'b> de::Deserializer<'de> for MapVisitor<'de, 'b> {
-    type Error = Error;
+    type Error = Box<Error>;
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -559,7 +558,7 @@ impl<'de, 'b> de::Deserializer<'de> for MapVisitor<'de, 'b> {
 
     // `None` is interpreted as a missing field so be sure to implement `Some`
     // as a present field.
-    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -570,7 +569,7 @@ impl<'de, 'b> de::Deserializer<'de> for MapVisitor<'de, 'b> {
         self,
         _name: &'static str,
         visitor: V,
-    ) -> Result<V::Value, Error>
+    ) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -582,7 +581,7 @@ impl<'de, 'b> de::Deserializer<'de> for MapVisitor<'de, 'b> {
         _name: &'static str,
         _variants: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value, Error>
+    ) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -625,7 +624,7 @@ impl<'a> StrDeserializer<'a> {
     }
 }
 
-impl<'a> de::IntoDeserializer<'a, Error> for StrDeserializer<'a> {
+impl<'a> de::IntoDeserializer<'a, Box<Error>> for StrDeserializer<'a> {
     type Deserializer = Self;
 
     fn into_deserializer(self) -> Self::Deserializer {
@@ -634,9 +633,9 @@ impl<'a> de::IntoDeserializer<'a, Error> for StrDeserializer<'a> {
 }
 
 impl<'de> de::Deserializer<'de> for StrDeserializer<'de> {
-    type Error = Error;
+    type Error = Box<Error>;
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -673,9 +672,9 @@ impl<'a> ValueDeserializer<'a> {
 }
 
 impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
-    type Error = Error;
+    type Error = Box<Error>;
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -711,7 +710,7 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
         _name: &'static str,
         fields: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value, Error>
+    ) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -752,7 +751,7 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
 
     // `None` is interpreted as a missing field so be sure to implement `Some`
     // as a present field.
-    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Error>
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -764,7 +763,7 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
         _name: &'static str,
         _variants: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value, Error>
+    ) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -804,7 +803,7 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
         self,
         _name: &'static str,
         visitor: V,
-    ) -> Result<V::Value, Error>
+    ) -> Result<V::Value, Box<Error>>
     where
         V: de::Visitor<'de>,
     {
@@ -818,7 +817,7 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
     }
 }
 
-impl<'de, 'b> de::IntoDeserializer<'de, Error> for MapVisitor<'de, 'b> {
+impl<'de, 'b> de::IntoDeserializer<'de, Box<Error>> for MapVisitor<'de, 'b> {
     type Deserializer = MapVisitor<'de, 'b>;
 
     fn into_deserializer(self) -> Self::Deserializer {
@@ -826,7 +825,7 @@ impl<'de, 'b> de::IntoDeserializer<'de, Error> for MapVisitor<'de, 'b> {
     }
 }
 
-impl<'de, 'b> de::IntoDeserializer<'de, Error> for &'b mut Deserializer<'de> {
+impl<'de, 'b> de::IntoDeserializer<'de, Box<Error>> for &'b mut Deserializer<'de> {
     type Deserializer = Self;
 
     fn into_deserializer(self) -> Self::Deserializer {
@@ -834,7 +833,7 @@ impl<'de, 'b> de::IntoDeserializer<'de, Error> for &'b mut Deserializer<'de> {
     }
 }
 
-impl<'de> de::IntoDeserializer<'de, Error> for Value<'de> {
+impl<'de> de::IntoDeserializer<'de, Box<Error>> for Value<'de> {
     type Deserializer = ValueDeserializer<'de>;
 
     fn into_deserializer(self) -> Self::Deserializer {
@@ -848,7 +847,7 @@ struct DottedTableDeserializer<'a> {
 }
 
 impl<'de> de::EnumAccess<'de> for DottedTableDeserializer<'de> {
-    type Error = Error;
+    type Error = Box<Error>;
     type Variant = TableEnumDeserializer<'de>;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
@@ -867,9 +866,9 @@ struct InlineTableDeserializer<'a> {
 }
 
 impl<'de> de::MapAccess<'de> for InlineTableDeserializer<'de> {
-    type Error = Error;
+    type Error = Box<Error>;
 
-    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Error>
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Box<Error>>
     where
         K: de::DeserializeSeed<'de>,
     {
@@ -881,7 +880,7 @@ impl<'de> de::MapAccess<'de> for InlineTableDeserializer<'de> {
         seed.deserialize(StrDeserializer::new(key)).map(Some)
     }
 
-    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Error>
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Box<Error>>
     where
         V: de::DeserializeSeed<'de>,
     {
@@ -891,7 +890,7 @@ impl<'de> de::MapAccess<'de> for InlineTableDeserializer<'de> {
 }
 
 impl<'de> de::EnumAccess<'de> for InlineTableDeserializer<'de> {
-    type Error = Error;
+    type Error = Box<Error>;
     type Variant = TableEnumDeserializer<'de>;
 
     fn variant_seed<V>(mut self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
@@ -922,7 +921,7 @@ struct TableEnumDeserializer<'a> {
 }
 
 impl<'de> de::VariantAccess<'de> for TableEnumDeserializer<'de> {
-    type Error = Error;
+    type Error = Box<Error>;
 
     fn unit_variant(self) -> Result<(), Self::Error> {
         match self.value.e {
@@ -1035,7 +1034,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn tables(&mut self) -> Result<Vec<Table<'a>>, Error> {
+    fn tables(&mut self) -> Result<Vec<Table<'a>>, Box<Error>> {
         let mut tables = Vec::new();
         let mut cur_table = Table {
             at: 0,
@@ -1082,7 +1081,7 @@ impl<'a> Deserializer<'a> {
         Ok(tables)
     }
 
-    fn line(&mut self) -> Result<Option<Line<'a>>, Error> {
+    fn line(&mut self) -> Result<Option<Line<'a>>, Box<Error>> {
         loop {
             self.eat_whitespace()?;
             if self.eat_comment()? {
@@ -1101,7 +1100,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn table_header(&mut self) -> Result<Line<'a>, Error> {
+    fn table_header(&mut self) -> Result<Line<'a>, Box<Error>> {
         let start = self.tokens.current();
         self.expect(Token::LeftBracket)?;
         let array = self.eat(Token::LeftBracket)?;
@@ -1114,7 +1113,7 @@ impl<'a> Deserializer<'a> {
         })
     }
 
-    fn key_value(&mut self) -> Result<Line<'a>, Error> {
+    fn key_value(&mut self) -> Result<Line<'a>, Box<Error>> {
         let key = self.dotted_key()?;
         self.eat_whitespace()?;
         self.expect(Token::Equals)?;
@@ -1129,7 +1128,7 @@ impl<'a> Deserializer<'a> {
         Ok(Line::KeyValue(key, value))
     }
 
-    fn value(&mut self) -> Result<Value<'a>, Error> {
+    fn value(&mut self) -> Result<Value<'a>, Box<Error>> {
         let at = self.tokens.current();
         let value = match self.next()? {
             Some((Span { start, end }, Token::String { val, .. })) => Value {
@@ -1177,7 +1176,12 @@ impl<'a> Deserializer<'a> {
         Ok(value)
     }
 
-    fn parse_keylike(&mut self, at: usize, span: Span, key: &'a str) -> Result<Value<'a>, Error> {
+    fn parse_keylike(
+        &mut self,
+        at: usize,
+        span: Span,
+        key: &'a str,
+    ) -> Result<Value<'a>, Box<Error>> {
         if key == "inf" || key == "nan" {
             return self.number(span, key);
         }
@@ -1193,7 +1197,7 @@ impl<'a> Deserializer<'a> {
     ///
     /// Used to deserialize enums. Unit enums may be represented as a string or a table, all other
     /// structures (tuple, newtype, struct) must be represented as a table.
-    fn string_or_table(&mut self) -> Result<(Value<'a>, Option<Cow<'a, str>>), Error> {
+    fn string_or_table(&mut self) -> Result<(Value<'a>, Option<Cow<'a, str>>), Box<Error>> {
         match self.peek()? {
             Some((span, Token::LeftBracket)) => {
                 let tables = self.tables()?;
@@ -1239,7 +1243,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn number(&mut self, Span { start, end }: Span, s: &'a str) -> Result<Value<'a>, Error> {
+    fn number(&mut self, Span { start, end }: Span, s: &'a str) -> Result<Value<'a>, Box<Error>> {
         let to_integer = |f| Value {
             e: E::Integer(f),
             start,
@@ -1298,7 +1302,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn number_leading_plus(&mut self, Span { start, .. }: Span) -> Result<Value<'a>, Error> {
+    fn number_leading_plus(&mut self, Span { start, .. }: Span) -> Result<Value<'a>, Box<Error>> {
         let start_token = self.tokens.current();
         match self.next()? {
             Some((Span { end, .. }, Token::Keylike(s))) => self.number(Span { start, end }, s),
@@ -1306,7 +1310,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn integer(&self, s: &'a str, radix: u32) -> Result<i64, Error> {
+    fn integer(&self, s: &'a str, radix: u32) -> Result<i64, Box<Error>> {
         let allow_sign = radix == 10;
         let allow_leading_zeros = radix != 10;
         let (prefix, suffix) = self.parse_integer(s, allow_sign, allow_leading_zeros, radix)?;
@@ -1324,7 +1328,7 @@ impl<'a> Deserializer<'a> {
         allow_sign: bool,
         allow_leading_zeros: bool,
         radix: u32,
-    ) -> Result<(&'a str, &'a str), Error> {
+    ) -> Result<(&'a str, &'a str), Box<Error>> {
         let start = self.tokens.substr_offset(s);
 
         let mut first = true;
@@ -1360,7 +1364,7 @@ impl<'a> Deserializer<'a> {
         Ok((&s[..end], &s[end..]))
     }
 
-    fn float(&mut self, s: &'a str, after_decimal: Option<&'a str>) -> Result<f64, Error> {
+    fn float(&mut self, s: &'a str, after_decimal: Option<&'a str>) -> Result<f64, Box<Error>> {
         let (integral, mut suffix) = self.parse_integer(s, true, false, 10)?;
         let start = self.tokens.substr_offset(integral);
 
@@ -1420,7 +1424,7 @@ impl<'a> Deserializer<'a> {
 
     // TODO(#140): shouldn't buffer up this entire table in memory, it'd be
     // great to defer parsing everything until later.
-    fn inline_table(&mut self) -> Result<(Span, Vec<TablePair<'a>>), Error> {
+    fn inline_table(&mut self) -> Result<(Span, Vec<TablePair<'a>>), Box<Error>> {
         let mut ret = Vec::new();
         self.eat_whitespace()?;
         if let Some(span) = self.eat_spanned(Token::RightBrace)? {
@@ -1445,10 +1449,10 @@ impl<'a> Deserializer<'a> {
 
     // TODO(#140): shouldn't buffer up this entire array in memory, it'd be
     // great to defer parsing everything until later.
-    fn array(&mut self) -> Result<(Span, Vec<Value<'a>>), Error> {
+    fn array(&mut self) -> Result<(Span, Vec<Value<'a>>), Box<Error>> {
         let mut ret = Vec::new();
 
-        let intermediate = |me: &mut Deserializer| {
+        let intermediate = |me: &mut Deserializer| -> Result<(), Box<Error>> {
             loop {
                 me.eat_whitespace()?;
                 if !me.eat(Token::Newline)? && !me.eat_comment()? {
@@ -1475,11 +1479,11 @@ impl<'a> Deserializer<'a> {
         Ok((span, ret))
     }
 
-    fn table_key(&mut self) -> Result<(Span, Cow<'a, str>), Error> {
+    fn table_key(&mut self) -> Result<(Span, Cow<'a, str>), Box<Error>> {
         self.tokens.table_key().map_err(|e| self.token_error(e))
     }
 
-    fn dotted_key(&mut self) -> Result<Vec<(Span, Cow<'a, str>)>, Error> {
+    fn dotted_key(&mut self) -> Result<Vec<(Span, Cow<'a, str>)>, Box<Error>> {
         let mut result = Vec::new();
         result.push(self.table_key()?);
         self.eat_whitespace()?;
@@ -1508,7 +1512,7 @@ impl<'a> Deserializer<'a> {
         mut key_parts: Vec<(Span, Cow<'a, str>)>,
         value: Value<'a>,
         values: &mut Vec<TablePair<'a>>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), Box<Error>> {
         let key = key_parts.remove(0);
         if key_parts.is_empty() {
             values.push((key, value));
@@ -1550,57 +1554,57 @@ impl<'a> Deserializer<'a> {
         Ok(())
     }
 
-    fn eat_whitespace(&mut self) -> Result<(), Error> {
+    fn eat_whitespace(&mut self) -> Result<(), Box<Error>> {
         self.tokens
             .eat_whitespace()
             .map_err(|e| self.token_error(e))
     }
 
-    fn eat_comment(&mut self) -> Result<bool, Error> {
+    fn eat_comment(&mut self) -> Result<bool, Box<Error>> {
         self.tokens.eat_comment().map_err(|e| self.token_error(e))
     }
 
-    fn eat_newline_or_eof(&mut self) -> Result<(), Error> {
+    fn eat_newline_or_eof(&mut self) -> Result<(), Box<Error>> {
         self.tokens
             .eat_newline_or_eof()
             .map_err(|e| self.token_error(e))
     }
 
-    fn eat(&mut self, expected: Token<'a>) -> Result<bool, Error> {
+    fn eat(&mut self, expected: Token<'a>) -> Result<bool, Box<Error>> {
         self.tokens.eat(expected).map_err(|e| self.token_error(e))
     }
 
-    fn eat_spanned(&mut self, expected: Token<'a>) -> Result<Option<Span>, Error> {
+    fn eat_spanned(&mut self, expected: Token<'a>) -> Result<Option<Span>, Box<Error>> {
         self.tokens
             .eat_spanned(expected)
             .map_err(|e| self.token_error(e))
     }
 
-    fn expect(&mut self, expected: Token<'a>) -> Result<(), Error> {
+    fn expect(&mut self, expected: Token<'a>) -> Result<(), Box<Error>> {
         self.tokens
             .expect(expected)
             .map_err(|e| self.token_error(e))
     }
 
-    fn expect_spanned(&mut self, expected: Token<'a>) -> Result<Span, Error> {
+    fn expect_spanned(&mut self, expected: Token<'a>) -> Result<Span, Box<Error>> {
         self.tokens
             .expect_spanned(expected)
             .map_err(|e| self.token_error(e))
     }
 
-    fn next(&mut self) -> Result<Option<(Span, Token<'a>)>, Error> {
+    fn next(&mut self) -> Result<Option<(Span, Token<'a>)>, Box<Error>> {
         self.tokens.next().map_err(|e| self.token_error(e))
     }
 
-    fn peek(&mut self) -> Result<Option<(Span, Token<'a>)>, Error> {
+    fn peek(&mut self) -> Result<Option<(Span, Token<'a>)>, Box<Error>> {
         self.tokens.peek().map_err(|e| self.token_error(e))
     }
 
-    fn eof(&self) -> Error {
+    fn eof(&self) -> Box<Error> {
         self.error(self.input.len(), ErrorKind::UnexpectedEof)
     }
 
-    fn token_error(&self, error: TokenError) -> Error {
+    fn token_error(&self, error: TokenError) -> Box<Error> {
         match error {
             TokenError::InvalidCharInString(at, ch) => {
                 self.error(at, ErrorKind::InvalidCharInString(ch))
@@ -1623,7 +1627,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn error(&self, at: usize, kind: ErrorKind) -> Error {
+    fn error(&self, at: usize, kind: ErrorKind) -> Box<Error> {
         let mut err = Error::from_kind(Some(at), kind);
         err.fix_linecol(|at| self.to_linecol(at));
         err
@@ -1652,26 +1656,26 @@ impl Error {
         self.line.map(|line| (line, self.col))
     }
 
-    fn from_kind(at: Option<usize>, kind: ErrorKind) -> Error {
-        Error {
+    fn from_kind(at: Option<usize>, kind: ErrorKind) -> Box<Self> {
+        Box::new(Error {
             kind,
             line: None,
             col: 0,
             at,
             message: String::new(),
             key: Vec::new(),
-        }
+        })
     }
 
-    fn custom(at: Option<usize>, s: String) -> Error {
-        Error {
+    fn custom(at: Option<usize>, s: String) -> Box<Self> {
+        Box::new(Error {
             kind: ErrorKind::Custom,
             line: None,
             col: 0,
             at,
             message: s,
             key: Vec::new(),
-        }
+        })
     }
 
     pub(crate) fn add_key_context(&mut self, key: &str) {
@@ -1790,8 +1794,8 @@ impl Display for Error {
 
 impl error::Error for Error {}
 
-impl de::Error for Error {
-    fn custom<T: Display>(msg: T) -> Error {
+impl de::Error for Box<Error> {
+    fn custom<T: Display>(msg: T) -> Self {
         Error::custom(None, msg.to_string())
     }
 }
