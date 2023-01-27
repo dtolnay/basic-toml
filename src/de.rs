@@ -80,16 +80,16 @@ pub(crate) struct Error {
 /// Errors that can occur when deserializing a type.
 #[derive(Debug)]
 enum ErrorKind {
-    /// EOF was reached when looking for a value
+    /// EOF was reached when looking for a value.
     UnexpectedEof,
 
-    /// An invalid character not allowed in a string was found
+    /// An invalid character not allowed in a string was found.
     InvalidCharInString(char),
 
-    /// An invalid character was found as an escape
+    /// An invalid character was found as an escape.
     InvalidEscape(char),
 
-    /// An invalid character was found in a hex escape
+    /// An invalid character was found in a hex escape.
     InvalidHexEscape(char),
 
     /// An invalid escape value was specified in a hex escape in a string.
@@ -111,14 +111,14 @@ enum ErrorKind {
     /// A newline was found in a table key.
     NewlineInTableKey,
 
-    /// A number failed to parse
+    /// A number failed to parse.
     NumberInvalid,
 
     /// Wanted one sort of token, but found another.
     Wanted {
-        /// Expected token type
+        /// Expected token type.
         expected: &'static str,
-        /// Actually found token type
+        /// Actually found token type.
         found: &'static str,
     },
 
@@ -131,7 +131,7 @@ enum ErrorKind {
     /// An empty table key was found.
     EmptyTableKey,
 
-    /// Multiline strings are not allowed for key
+    /// Multiline strings are not allowed for key.
     MultilineStringKey,
 
     /// A custom error which could be generated when deserializing a particular
@@ -151,7 +151,7 @@ enum ErrorKind {
         found: String,
     },
 
-    /// An empty table was expected but entries were found
+    /// An empty table was expected but entries were found.
     ExpectedEmptyTable,
 
     /// Dotted key attempted to extend something that is not a table.
@@ -167,7 +167,7 @@ enum ErrorKind {
         available: &'static [&'static str],
     },
 
-    /// Unquoted string was found when quoted one was expected
+    /// Unquoted string was found when quoted one was expected.
     UnquotedString,
 }
 
