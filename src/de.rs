@@ -1083,7 +1083,7 @@ impl<'a> Deserializer<'a> {
 
     fn line(&mut self) -> Result<Option<Line<'a>>, Box<Error>> {
         loop {
-            self.eat_whitespace()?;
+            self.eat_whitespace();
             if self.eat_comment()? {
                 continue;
             }
@@ -1115,12 +1115,12 @@ impl<'a> Deserializer<'a> {
 
     fn key_value(&mut self) -> Result<Line<'a>, Box<Error>> {
         let key = self.dotted_key()?;
-        self.eat_whitespace()?;
+        self.eat_whitespace();
         self.expect(Token::Equals)?;
-        self.eat_whitespace()?;
+        self.eat_whitespace();
 
         let value = self.value()?;
-        self.eat_whitespace()?;
+        self.eat_whitespace();
         if !self.eat_comment()? {
             self.eat_newline_or_eof()?;
         }
@@ -1426,24 +1426,24 @@ impl<'a> Deserializer<'a> {
     // great to defer parsing everything until later.
     fn inline_table(&mut self) -> Result<(Span, Vec<TablePair<'a>>), Box<Error>> {
         let mut ret = Vec::new();
-        self.eat_whitespace()?;
+        self.eat_whitespace();
         if let Some(span) = self.eat_spanned(Token::RightBrace)? {
             return Ok((span, ret));
         }
         loop {
             let key = self.dotted_key()?;
-            self.eat_whitespace()?;
+            self.eat_whitespace();
             self.expect(Token::Equals)?;
-            self.eat_whitespace()?;
+            self.eat_whitespace();
             let value = self.value()?;
             self.add_dotted_key(key, value, &mut ret)?;
 
-            self.eat_whitespace()?;
+            self.eat_whitespace();
             if let Some(span) = self.eat_spanned(Token::RightBrace)? {
                 return Ok((span, ret));
             }
             self.expect(Token::Comma)?;
-            self.eat_whitespace()?;
+            self.eat_whitespace();
         }
     }
 
@@ -1454,7 +1454,7 @@ impl<'a> Deserializer<'a> {
 
         let intermediate = |me: &mut Deserializer| -> Result<(), Box<Error>> {
             loop {
-                me.eat_whitespace()?;
+                me.eat_whitespace();
                 if !me.eat(Token::Newline)? && !me.eat_comment()? {
                     break;
                 }
@@ -1486,11 +1486,11 @@ impl<'a> Deserializer<'a> {
     fn dotted_key(&mut self) -> Result<Vec<(Span, Cow<'a, str>)>, Box<Error>> {
         let mut result = Vec::new();
         result.push(self.table_key()?);
-        self.eat_whitespace()?;
+        self.eat_whitespace();
         while self.eat(Token::Period)? {
-            self.eat_whitespace()?;
+            self.eat_whitespace();
             result.push(self.table_key()?);
-            self.eat_whitespace()?;
+            self.eat_whitespace();
         }
         Ok(result)
     }
@@ -1554,10 +1554,8 @@ impl<'a> Deserializer<'a> {
         Ok(())
     }
 
-    fn eat_whitespace(&mut self) -> Result<(), Box<Error>> {
-        self.tokens
-            .eat_whitespace()
-            .map_err(|e| self.token_error(e))
+    fn eat_whitespace(&mut self) {
+        self.tokens.eat_whitespace();
     }
 
     fn eat_comment(&mut self) -> Result<bool, Box<Error>> {
@@ -1825,11 +1823,11 @@ impl<'a> Header<'a> {
     }
 
     fn next(&mut self) -> Result<Option<(Span, Cow<'a, str>)>, TokenError> {
-        self.tokens.eat_whitespace()?;
+        self.tokens.eat_whitespace();
 
         if self.first || self.tokens.eat(Token::Period)? {
             self.first = false;
-            self.tokens.eat_whitespace()?;
+            self.tokens.eat_whitespace();
             self.tokens.table_key().map(Some)
         } else {
             self.tokens.expect(Token::RightBracket)?;
@@ -1837,7 +1835,7 @@ impl<'a> Header<'a> {
                 self.tokens.expect(Token::RightBracket)?;
             }
 
-            self.tokens.eat_whitespace()?;
+            self.tokens.eat_whitespace();
             if !self.tokens.eat_comment()? {
                 self.tokens.eat_newline_or_eof()?;
             }

@@ -205,11 +205,10 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn eat_whitespace(&mut self) -> Result<(), Error> {
+    pub fn eat_whitespace(&mut self) {
         while self.eatc(' ') || self.eatc('\t') {
             // ...
         }
-        Ok(())
     }
 
     pub fn eat_comment(&mut self) -> Result<bool, Error> {

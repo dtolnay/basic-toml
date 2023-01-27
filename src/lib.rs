@@ -104,7 +104,6 @@
     clippy::similar_names,
     clippy::type_complexity,
     clippy::uninlined_format_args,
-    clippy::unnecessary_wraps,
     clippy::unnested_or_patterns,
     clippy::unwrap_or_else_default,
     clippy::wrong_self_convention

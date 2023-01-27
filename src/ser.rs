@@ -136,7 +136,7 @@ impl<'a> Serializer<'a> {
     }
 
     fn emit_key(&mut self, type_: ArrayState) -> Result<(), Error> {
-        self.array_type(type_)?;
+        self.array_type(type_);
         let state = self.state.clone();
         self._emit_key(&state)
     }
@@ -155,7 +155,8 @@ impl<'a> Serializer<'a> {
                 if first.get() {
                     self._emit_key(parent)?;
                 }
-                self.emit_array(first, len)
+                self.emit_array(first, len);
+                Ok(())
             }
             State::Table {
                 parent,
@@ -177,24 +178,22 @@ impl<'a> Serializer<'a> {
         }
     }
 
-    fn emit_array(&mut self, first: &Cell<bool>, _len: Option<usize>) -> Result<(), Error> {
+    fn emit_array(&mut self, first: &Cell<bool>, _len: Option<usize>) {
         if first.get() {
             self.dst.push('[');
         } else {
             self.dst.push_str(", ");
         }
-        Ok(())
     }
 
-    fn array_type(&mut self, type_: ArrayState) -> Result<(), Error> {
+    fn array_type(&mut self, type_: ArrayState) {
         let prev = match self.state {
             State::Array { type_, .. } => type_,
-            _ => return Ok(()),
+            _ => return,
         };
         if prev.get().is_none() {
             prev.set(Some(type_));
         }
-        Ok(())
     }
 
     fn escape_key(&mut self, key: &str) -> Result<(), Error> {
@@ -469,7 +468,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        self.array_type(ArrayState::Started)?;
+        self.array_type(ArrayState::Started);
         Ok(SerializeSeq {
             ser: self,
             first: Cell::new(true),
@@ -501,7 +500,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        self.array_type(ArrayState::StartedAsATable)?;
+        self.array_type(ArrayState::StartedAsATable);
         Ok(SerializeTable {
             ser: self,
             key: String::new(),
@@ -515,7 +514,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        self.array_type(ArrayState::StartedAsATable)?;
+        self.array_type(ArrayState::StartedAsATable);
         Ok(SerializeTable {
             ser: self,
             key: String::new(),
