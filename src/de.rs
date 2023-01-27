@@ -625,7 +625,7 @@ impl<'a> StrDeserializer<'a> {
     }
 }
 
-impl<'a, 'b> de::IntoDeserializer<'a, Error> for StrDeserializer<'a> {
+impl<'a> de::IntoDeserializer<'a, Error> for StrDeserializer<'a> {
     type Deserializer = Self;
 
     fn into_deserializer(self) -> Self::Deserializer {

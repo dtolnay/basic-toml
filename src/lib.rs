@@ -94,7 +94,6 @@
 #![deny(missing_docs)]
 #![allow(
     clippy::bool_to_int_with_if,
-    clippy::extra_unused_lifetimes,
     clippy::if_not_else,
     clippy::is_digit_ascii_radix,
     clippy::len_zero,
