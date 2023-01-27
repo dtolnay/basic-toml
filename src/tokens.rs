@@ -306,7 +306,7 @@ impl<'a> Tokenizer<'a> {
                 Some((i, '\n')) => {
                     if multiline {
                         if self.input.as_bytes()[i] == b'\r' {
-                            val.to_owned(&self.input[..i]);
+                            val.make_owned(&self.input[..i]);
                         }
                         if n == 1 {
                             val = MaybeString::NotEscaped(self.current());
@@ -363,7 +363,7 @@ impl<'a> Tokenizer<'a> {
     fn basic_string(&mut self, start: usize) -> Result<Token<'a>, Error> {
         self.read_string('"', start, &mut |me, val, multi, i, ch| match ch {
             '\\' => {
-                val.to_owned(&me.input[..i]);
+                val.make_owned(&me.input[..i]);
                 match me.chars.next() {
                     Some((_, '"')) => val.push('"'),
                     Some((_, '\\')) => val.push('\\'),
@@ -493,7 +493,7 @@ impl MaybeString {
         }
     }
 
-    fn to_owned(&mut self, input: &str) {
+    fn make_owned(&mut self, input: &str) {
         match *self {
             MaybeString::NotEscaped(start) => {
                 *self = MaybeString::Owned(input[start..].to_owned());
