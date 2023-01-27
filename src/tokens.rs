@@ -254,11 +254,10 @@ impl<'a> Tokenizer<'a> {
     }
 
     pub fn current(&mut self) -> usize {
-        self.chars
-            .clone()
-            .next()
-            .map(|i| i.0)
-            .unwrap_or_else(|| self.input.len())
+        match self.chars.clone().next() {
+            Some(i) => i.0,
+            None => self.input.len(),
+        }
     }
 
     fn whitespace_token(&mut self, start: usize) -> Token<'a> {
@@ -455,10 +454,10 @@ impl<'a> Tokenizer<'a> {
 
     /// Calculate the span of a single character.
     fn step_span(&mut self, start: usize) -> Span {
-        let end = self
-            .peek_one()
-            .map(|t| t.0)
-            .unwrap_or_else(|| self.input.len());
+        let end = match self.peek_one() {
+            Some(t) => t.0,
+            None => self.input.len(),
+        };
         Span { start, end }
     }
 

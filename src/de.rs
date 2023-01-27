@@ -1221,12 +1221,10 @@ impl<'a> Deserializer<'a> {
                     .expect("Expected at least one header value for table.");
 
                 let start = table.at;
-                let end = table
-                    .values
-                    .as_ref()
-                    .and_then(|values| values.last())
-                    .map(|&(_, ref val)| val.end)
-                    .unwrap_or_else(|| header.1.len());
+                let end = match table.values.as_ref().and_then(|values| values.last()) {
+                    Some((_, val)) => val.end,
+                    None => header.1.len(),
+                };
                 Ok((
                     Value {
                         e: E::DottedTable(table.values.unwrap_or_else(Vec::new)),
