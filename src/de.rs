@@ -99,9 +99,6 @@ enum ErrorKind {
     /// A previously defined table was redefined as an array.
     RedefineAsArray,
 
-    /// An empty table key was found.
-    EmptyTableKey,
-
     /// Multiline strings are not allowed for key.
     MultilineStringKey,
 
@@ -184,58 +181,10 @@ impl<'de, 'b> de::Deserializer<'de> for &'b mut Deserializer<'de> {
         })
     }
 
-    // Called when the type to deserialize is an enum, as opposed to a field in
-    // the type.
-    fn deserialize_enum<V>(
-        self,
-        _name: &'static str,
-        _variants: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Box<Error>>
-    where
-        V: de::Visitor<'de>,
-    {
-        let (value, name) = self.string_or_table()?;
-        match value.e {
-            E::String(val) => visitor.visit_enum(val.into_deserializer()),
-            E::InlineTable(values) => {
-                if values.len() == 1 {
-                    visitor.visit_enum(InlineTableDeserializer {
-                        values: values.into_iter(),
-                        next_value: None,
-                    })
-                } else {
-                    Err(Error::from_kind(
-                        Some(value.start),
-                        ErrorKind::Wanted {
-                            expected: "exactly 1 element",
-                            found: if values.is_empty() {
-                                "zero elements"
-                            } else {
-                                "more than 1 element"
-                            },
-                        },
-                    ))
-                }
-            }
-            E::DottedTable(_) => visitor.visit_enum(DottedTableDeserializer {
-                name: name.expect("Expected table header to be passed."),
-                value,
-            }),
-            e => Err(Error::from_kind(
-                Some(value.start),
-                ErrorKind::Wanted {
-                    expected: "string or table",
-                    found: e.type_name(),
-                },
-            )),
-        }
-    }
-
     serde::forward_to_deserialize_any! {
         bool u8 u16 u32 u64 i8 i16 i32 i64 f32 f64 char str string seq
         bytes byte_buf map unit newtype_struct
-        ignored_any unit_struct tuple_struct tuple option identifier struct
+        ignored_any unit_struct tuple_struct tuple option identifier struct enum
     }
 }
 
@@ -545,41 +494,10 @@ impl<'de, 'b> de::Deserializer<'de> for MapVisitor<'de, 'b> {
         visitor.visit_newtype_struct(self)
     }
 
-    fn deserialize_enum<V>(
-        self,
-        _name: &'static str,
-        _variants: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Box<Error>>
-    where
-        V: de::Visitor<'de>,
-    {
-        if self.tables.len() != 1 {
-            return Err(Error::custom(
-                Some(self.cur),
-                "enum table must contain exactly one table".into(),
-            ));
-        }
-        let table = &mut self.tables[0];
-        let values = table.values.take().expect("table has no values?");
-        if table.header.is_empty() {
-            return Err(self.de.error(self.cur, ErrorKind::EmptyTableKey));
-        }
-        let name = table.header[table.header.len() - 1].1.clone();
-        visitor.visit_enum(DottedTableDeserializer {
-            name,
-            value: Value {
-                e: E::DottedTable(values),
-                start: 0,
-                end: 0,
-            },
-        })
-    }
-
     serde::forward_to_deserialize_any! {
         bool u8 u16 u32 u64 i8 i16 i32 i64 f32 f64 char str string seq
         bytes byte_buf map unit identifier
-        ignored_any unit_struct tuple_struct tuple struct
+        ignored_any unit_struct tuple_struct tuple struct enum
     }
 }
 
@@ -738,30 +656,10 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
     {
         match self.value.e {
             E::String(val) => visitor.visit_enum(val.into_deserializer()),
-            E::InlineTable(values) => {
-                if values.len() == 1 {
-                    visitor.visit_enum(InlineTableDeserializer {
-                        values: values.into_iter(),
-                        next_value: None,
-                    })
-                } else {
-                    Err(Error::from_kind(
-                        Some(self.value.start),
-                        ErrorKind::Wanted {
-                            expected: "exactly 1 element",
-                            found: if values.is_empty() {
-                                "zero elements"
-                            } else {
-                                "more than 1 element"
-                            },
-                        },
-                    ))
-                }
-            }
             e => Err(Error::from_kind(
                 Some(self.value.start),
                 ErrorKind::Wanted {
-                    expected: "string or inline table",
+                    expected: "string",
                     found: e.type_name(),
                 },
             )),
@@ -1159,56 +1057,6 @@ impl<'a> Deserializer<'a> {
         match first_char {
             '-' | '0'..='9' => self.number(span, key),
             _ => Err(self.error(at, ErrorKind::UnquotedString)),
-        }
-    }
-
-    /// Returns a string or table value type.
-    ///
-    /// Used to deserialize enums. Unit enums may be represented as a string or a table, all other
-    /// structures (tuple, newtype, struct) must be represented as a table.
-    fn string_or_table(&mut self) -> Result<(Value<'a>, Option<Cow<'a, str>>), Box<Error>> {
-        match self.peek()? {
-            Some((span, Token::LeftBracket)) => {
-                let tables = self.tables()?;
-                if tables.len() != 1 {
-                    return Err(Error::from_kind(
-                        Some(span.start),
-                        ErrorKind::Wanted {
-                            expected: "exactly 1 table",
-                            found: if tables.is_empty() {
-                                "zero tables"
-                            } else {
-                                "more than 1 table"
-                            },
-                        },
-                    ));
-                }
-
-                let table = tables
-                    .into_iter()
-                    .next()
-                    .expect("Expected exactly one table");
-                let header = table
-                    .header
-                    .last()
-                    .expect("Expected at least one header value for table.");
-
-                let start = table.at;
-                let end = match table.values.as_ref().and_then(|values| values.last()) {
-                    Some((_, val)) => val.end,
-                    None => header.1.len(),
-                };
-                Ok((
-                    Value {
-                        e: E::DottedTable(table.values.unwrap_or_else(Vec::new)),
-                        start,
-                        end,
-                    },
-                    Some(header.1.clone()),
-                ))
-            }
-            Some(_) => self.value().map(|val| (val, None)),
-            None => Err(self.eof()),
         }
     }
 
@@ -1714,7 +1562,6 @@ impl Display for Error {
                 write!(f, "redefinition of table `{}`", s)?;
             }
             ErrorKind::RedefineAsArray => "table redefined as array".fmt(f)?,
-            ErrorKind::EmptyTableKey => "empty table key found".fmt(f)?,
             ErrorKind::MultilineStringKey => "multiline strings are not allowed for key".fmt(f)?,
             ErrorKind::Custom => self.message.fmt(f)?,
             ErrorKind::ExpectedTuple(l) => write!(f, "expected table with length {}", l)?,

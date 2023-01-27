@@ -315,7 +315,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
     type SerializeSeq = SerializeSeq<'a, 'b>;
     type SerializeTuple = SerializeSeq<'a, 'b>;
     type SerializeTupleStruct = SerializeSeq<'a, 'b>;
-    type SerializeTupleVariant = SerializeSeq<'a, 'b>;
+    type SerializeTupleVariant = ser::Impossible<(), Error>;
     type SerializeMap = SerializeTable<'a, 'b>;
     type SerializeStruct = SerializeTable<'a, 'b>;
     type SerializeStructVariant = ser::Impossible<(), Error>;
@@ -461,9 +461,9 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         _name: &'static str,
         _variant_index: u32,
         _variant: &'static str,
-        len: usize,
+        _len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        self.serialize_seq(Some(len))
+        Err(Error::UnsupportedType)
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
@@ -544,22 +544,6 @@ impl<'a, 'b> ser::SerializeTuple for SerializeSeq<'a, 'b> {
     type Error = Error;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
-    where
-        T: Serialize,
-    {
-        ser::SerializeSeq::serialize_element(self, value)
-    }
-
-    fn end(self) -> Result<(), Error> {
-        ser::SerializeSeq::end(self)
-    }
-}
-
-impl<'a, 'b> ser::SerializeTupleVariant for SerializeSeq<'a, 'b> {
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
     where
         T: Serialize,
     {
