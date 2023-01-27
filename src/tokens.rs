@@ -1,9 +1,6 @@
-use self::Token::*;
 use std::borrow::Cow;
 use std::char;
 use std::str;
-use std::string;
-use std::string::String as StdString;
 
 /// A span, designating a range of bytes where a token is located.
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
@@ -76,7 +73,7 @@ struct CrlfFold<'a> {
 #[derive(Debug)]
 enum MaybeString {
     NotEscaped(usize),
-    Owned(string::String),
+    Owned(String),
 }
 
 impl<'a> Tokenizer<'a> {
@@ -94,19 +91,19 @@ impl<'a> Tokenizer<'a> {
 
     pub fn next(&mut self) -> Result<Option<(Span, Token<'a>)>, Error> {
         let (start, token) = match self.one() {
-            Some((start, '\n')) => (start, Newline),
+            Some((start, '\n')) => (start, Token::Newline),
             Some((start, ' ')) => (start, self.whitespace_token(start)),
             Some((start, '\t')) => (start, self.whitespace_token(start)),
             Some((start, '#')) => (start, self.comment_token(start)),
-            Some((start, '=')) => (start, Equals),
-            Some((start, '.')) => (start, Period),
-            Some((start, ',')) => (start, Comma),
-            Some((start, ':')) => (start, Colon),
-            Some((start, '+')) => (start, Plus),
-            Some((start, '{')) => (start, LeftBrace),
-            Some((start, '}')) => (start, RightBrace),
-            Some((start, '[')) => (start, LeftBracket),
-            Some((start, ']')) => (start, RightBracket),
+            Some((start, '=')) => (start, Token::Equals),
+            Some((start, '.')) => (start, Token::Period),
+            Some((start, ',')) => (start, Token::Comma),
+            Some((start, ':')) => (start, Token::Colon),
+            Some((start, '+')) => (start, Token::Plus),
+            Some((start, '{')) => (start, Token::LeftBrace),
+            Some((start, '}')) => (start, Token::RightBrace),
+            Some((start, '[')) => (start, Token::LeftBracket),
+            Some((start, ']')) => (start, Token::RightBracket),
             Some((start, '\'')) => {
                 return self
                     .literal_string(start)
@@ -268,7 +265,7 @@ impl<'a> Tokenizer<'a> {
         while self.eatc(' ') || self.eatc('\t') {
             // ...
         }
-        Whitespace(&self.input[start..self.current()])
+        Token::Whitespace(&self.input[start..self.current()])
     }
 
     fn comment_token(&mut self, start: usize) -> Token<'a> {
@@ -278,7 +275,7 @@ impl<'a> Tokenizer<'a> {
             }
             self.one();
         }
-        Comment(&self.input[start..self.current()])
+        Token::Comment(&self.input[start..self.current()])
     }
 
     fn read_string(
@@ -298,7 +295,7 @@ impl<'a> Tokenizer<'a> {
             if self.eatc(delim) {
                 multiline = true;
             } else {
-                return Ok(String {
+                return Ok(Token::String {
                     src: &self.input[start..start + 2],
                     val: Cow::Borrowed(""),
                     multiline: false,
@@ -345,7 +342,7 @@ impl<'a> Tokenizer<'a> {
                             i += 1;
                         }
                     }
-                    return Ok(String {
+                    return Ok(Token::String {
                         src: &self.input[start..self.current()],
                         val: val.into_cow(&self.input[..i]),
                         multiline,
@@ -423,7 +420,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     fn hex(&mut self, start: usize, i: usize, len: usize) -> Result<char, Error> {
-        let mut buf = StdString::with_capacity(len);
+        let mut buf = String::with_capacity(len);
         for _ in 0..len {
             match self.one() {
                 Some((_, ch)) if ch as u32 <= 0x7F && ch.is_digit(16) => buf.push(ch),
@@ -445,7 +442,7 @@ impl<'a> Tokenizer<'a> {
             }
             self.one();
         }
-        Keylike(&self.input[start..self.current()])
+        Token::Keylike(&self.input[start..self.current()])
     }
 
     pub fn substr_offset(&self, s: &'a str) -> usize {
