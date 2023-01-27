@@ -97,7 +97,6 @@
     clippy::manual_let_else,
     clippy::manual_range_contains,
     clippy::match_like_matches_macro,
-    clippy::match_same_arms,
     clippy::match_wildcard_for_single_variants,
     clippy::missing_errors_doc,
     clippy::must_use_candidate,

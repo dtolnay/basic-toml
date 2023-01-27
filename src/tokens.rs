@@ -92,8 +92,7 @@ impl<'a> Tokenizer<'a> {
     pub fn next(&mut self) -> Result<Option<(Span, Token<'a>)>, Error> {
         let (start, token) = match self.one() {
             Some((start, '\n')) => (start, Token::Newline),
-            Some((start, ' ')) => (start, self.whitespace_token(start)),
-            Some((start, '\t')) => (start, self.whitespace_token(start)),
+            Some((start, ' ' | '\t')) => (start, self.whitespace_token(start)),
             Some((start, '#')) => (start, self.comment_token(start)),
             Some((start, '=')) => (start, Token::Equals),
             Some((start, '.')) => (start, Token::Period),
@@ -136,8 +135,7 @@ impl<'a> Tokenizer<'a> {
     pub fn eat_spanned(&mut self, expected: Token<'a>) -> Result<Option<Span>, Error> {
         let span = match self.peek()? {
             Some((span, ref found)) if expected == *found => span,
-            Some(_) => return Ok(None),
-            None => return Ok(None),
+            Some(_) | None => return Ok(None),
         };
 
         drop(self.next());
