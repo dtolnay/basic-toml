@@ -100,7 +100,6 @@
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
     clippy::needless_doctest_main,
-    clippy::needless_lifetimes,
     clippy::needless_pass_by_value,
     clippy::redundant_else,
     clippy::redundant_field_names,

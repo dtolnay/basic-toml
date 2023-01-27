@@ -315,7 +315,7 @@ fn build_table_pindices<'de>(tables: &[Table<'de>]) -> HashMap<Vec<Cow<'de, str>
     res
 }
 
-fn headers_equal<'a, 'b>(hdr_a: &[(Span, Cow<'a, str>)], hdr_b: &[(Span, Cow<'b, str>)]) -> bool {
+fn headers_equal(hdr_a: &[(Span, Cow<str>)], hdr_b: &[(Span, Cow<str>)]) -> bool {
     if hdr_a.len() != hdr_b.len() {
         return false;
     }
