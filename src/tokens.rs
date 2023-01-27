@@ -568,7 +568,7 @@ mod tests {
                 Token::String {
                     src: input,
                     val: Cow::Borrowed(val),
-                    multiline: multiline,
+                    multiline,
                 }
             );
             assert!(t.next().unwrap().is_none());
@@ -594,7 +594,7 @@ mod tests {
                 Token::String {
                     src: input,
                     val: Cow::Borrowed(val),
-                    multiline: multiline,
+                    multiline,
                 }
             );
             assert!(t.next().unwrap().is_none());
