@@ -228,7 +228,12 @@ impl<'de, 'b> de::Deserializer<'de> for &'b mut Deserializer<'de> {
         match value.e {
             E::String(val) => visitor.visit_enum(val.into_deserializer()),
             E::InlineTable(values) => {
-                if values.len() != 1 {
+                if values.len() == 1 {
+                    visitor.visit_enum(InlineTableDeserializer {
+                        values: values.into_iter(),
+                        next_value: None,
+                    })
+                } else {
                     Err(Error::from_kind(
                         Some(value.start),
                         ErrorKind::Wanted {
@@ -240,11 +245,6 @@ impl<'de, 'b> de::Deserializer<'de> for &'b mut Deserializer<'de> {
                             },
                         },
                     ))
-                } else {
-                    visitor.visit_enum(InlineTableDeserializer {
-                        values: values.into_iter(),
-                        next_value: None,
-                    })
                 }
             }
             E::DottedTable(_) => visitor.visit_enum(DottedTableDeserializer {
@@ -722,10 +722,10 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
                         .iter()
                         .filter_map(|key_value| {
                             let (ref key, ref _val) = *key_value;
-                            if !fields.contains(&&*(key.1)) {
-                                Some(key.clone())
-                            } else {
+                            if fields.contains(&&*(key.1)) {
                                 None
+                            } else {
+                                Some(key.clone())
                             }
                         })
                         .collect::<Vec<_>>();
@@ -771,7 +771,12 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
         match self.value.e {
             E::String(val) => visitor.visit_enum(val.into_deserializer()),
             E::InlineTable(values) => {
-                if values.len() != 1 {
+                if values.len() == 1 {
+                    visitor.visit_enum(InlineTableDeserializer {
+                        values: values.into_iter(),
+                        next_value: None,
+                    })
+                } else {
                     Err(Error::from_kind(
                         Some(self.value.start),
                         ErrorKind::Wanted {
@@ -783,11 +788,6 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
                             },
                         },
                     ))
-                } else {
-                    visitor.visit_enum(InlineTableDeserializer {
-                        values: values.into_iter(),
-                        next_value: None,
-                    })
                 }
             }
             e => Err(Error::from_kind(
