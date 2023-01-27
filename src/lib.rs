@@ -23,66 +23,79 @@
 //! # Deserialization
 //!
 //! ```
+//! use semver::{Version, VersionReq};
 //! use serde_derive::Deserialize;
+//! use std::collections::BTreeMap as Map;
 //!
 //! #[derive(Deserialize)]
-//! struct Config {
-//!     ip: String,
-//!     port: Option<u16>,
-//!     keys: Keys,
+//! struct Manifest {
+//!     package: Package,
+//!     #[serde(default)]
+//!     dependencies: Map<String, VersionReq>,
 //! }
 //!
 //! #[derive(Deserialize)]
-//! struct Keys {
-//!     github: String,
-//!     travis: Option<String>,
+//! struct Package {
+//!     name: String,
+//!     version: Version,
+//!     #[serde(default)]
+//!     authors: Vec<String>,
 //! }
 //!
 //! fn main() {
-//!     let config: Config = basic_toml::from_str(r#"
-//!         ip = '127.0.0.1'
+//!     let manifest: Manifest = basic_toml::from_str(r#"
+//!         [package]
+//!         name = "basic-toml"
+//!         version = "0.0.0"
+//!         authors = ["Alex Crichton <alex@alexcrichton.com>"]
 //!
-//!         [keys]
-//!         github = 'xxxxxxxxxxxxxxxxx'
-//!         travis = 'yyyyyyyyyyyyyyyyy'
+//!         [dependencies]
+//!         serde = "^1.0"
 //!     "#).unwrap();
 //!
-//!     assert_eq!(config.ip, "127.0.0.1");
-//!     assert_eq!(config.port, None);
-//!     assert_eq!(config.keys.github, "xxxxxxxxxxxxxxxxx");
-//!     assert_eq!(config.keys.travis.as_ref().unwrap(), "yyyyyyyyyyyyyyyyy");
+//!     assert_eq!(manifest.package.name, "basic-toml");
+//!     assert_eq!(manifest.package.version, Version::new(0, 0, 0));
+//!     assert_eq!(manifest.package.authors, ["Alex Crichton <alex@alexcrichton.com>"]);
+//!     assert_eq!(manifest.dependencies["serde"].to_string(), "^1.0");
 //! }
 //! ```
 //!
 //! # Serialization
 //!
 //! ```
+//! use semver::{Version, VersionReq};
 //! use serde_derive::Serialize;
+//! use std::collections::BTreeMap as Map;
 //!
 //! #[derive(Serialize)]
-//! struct Config {
-//!     ip: String,
-//!     port: Option<u16>,
-//!     keys: Keys,
+//! struct Manifest {
+//!     package: Package,
+//!     dependencies: Map<String, VersionReq>,
 //! }
 //!
 //! #[derive(Serialize)]
-//! struct Keys {
-//!     github: String,
-//!     travis: Option<String>,
+//! struct Package {
+//!     name: String,
+//!     version: Version,
+//!     authors: Vec<String>,
 //! }
 //!
 //! fn main() {
-//!     let config = Config {
-//!         ip: "127.0.0.1".to_string(),
-//!         port: None,
-//!         keys: Keys {
-//!             github: "xxxxxxxxxxxxxxxxx".to_string(),
-//!             travis: Some("yyyyyyyyyyyyyyyyy".to_string()),
+//!     let manifest = Manifest {
+//!         package: Package {
+//!             name: "basic-toml".to_owned(),
+//!             version: Version::new(0, 0, 0),
+//!             authors: vec!["Alex Crichton <alex@alexcrichton.com>".to_owned()],
+//!         },
+//!         dependencies: {
+//!             let mut dependencies = Map::new();
+//!             dependencies.insert("serde".to_owned(), "^1.0".parse().unwrap());
+//!             dependencies
 //!         },
 //!     };
 //!
-//!     let toml = basic_toml::to_string(&config).unwrap();
+//!     let toml = basic_toml::to_string(&manifest).unwrap();
+//!     print!("{}", toml);
 //! }
 //! ```
 

@@ -30,35 +30,6 @@ where
 ///
 /// This function will attempt to interpret `s` as a TOML document and
 /// deserialize `T` from the document.
-///
-/// # Examples
-///
-/// ```
-/// use serde_derive::Deserialize;
-///
-/// #[derive(Deserialize)]
-/// struct Config {
-///     title: String,
-///     owner: Owner,
-/// }
-///
-/// #[derive(Deserialize)]
-/// struct Owner {
-///     name: String,
-/// }
-///
-/// fn main() {
-///     let config: Config = basic_toml::from_str(r#"
-///         title = 'TOML Example'
-///
-///         [owner]
-///         name = 'Lisa'
-///     "#).unwrap();
-///
-///     assert_eq!(config.title, "TOML Example");
-///     assert_eq!(config.owner.name, "Lisa");
-/// }
-/// ```
 pub fn from_str<'de, T>(s: &'de str) -> Result<T, crate::Error>
 where
     T: de::Deserialize<'de>,
