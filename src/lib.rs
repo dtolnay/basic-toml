@@ -1,10 +1,7 @@
-//! A [TOML]-parsing library
+//! A library for parsing and producing data in [TOML] format using [Serde].
 //!
-//! This library implements a TOML v0.5.0 compatible parser, primarily
-//! supporting the [`serde`] library for encoding/decoding various types in
-//! Rust.
-//!
-//! TOML itself is a simple, ergonomic, and readable configuration format:
+//! TOML is designed to be "a config file format for humans": minimal and easy
+//! to read due to obvious semantics.
 //!
 //! ```toml
 //! [package]
@@ -16,12 +13,14 @@
 //! serde = "1.0"
 //! ```
 //!
-//! The TOML format tends to be relatively common throughout the Rust community
-//! for configuration, notably being used by [Cargo], Rust's package manager.
+//! The TOML format is widely used throughout the Rust community for
+//! configuration, notably being used by [Cargo], Rust's package manager.
 //!
-//! ## Deserialization and Serialization
+//! [TOML]: https://toml.io
+//! [Serde]: https://serde.rs
+//! [Cargo]: https://crates.io
 //!
-//! An example of deserializing with TOML is:
+//! # Deserialization
 //!
 //! ```
 //! use serde_derive::Deserialize;
@@ -55,7 +54,7 @@
 //! }
 //! ```
 //!
-//! You can serialize types in a similar fashion:
+//! # Serialization
 //!
 //! ```
 //! use serde_derive::Serialize;
@@ -86,10 +85,6 @@
 //!     let toml = basic_toml::to_string(&config).unwrap();
 //! }
 //! ```
-//!
-//! [TOML]: https://toml.io
-//! [Cargo]: https://crates.io/
-//! [`serde`]: https://serde.rs/
 
 #![deny(missing_docs)]
 #![allow(
