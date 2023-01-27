@@ -314,7 +314,6 @@ impl<'a> Tokenizer<'a> {
                         } else {
                             val.push('\n');
                         }
-                        continue;
                     } else {
                         return Err(Error::NewlineInString(i));
                     }
