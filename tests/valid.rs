@@ -1,3 +1,9 @@
+#![allow(
+    clippy::match_like_matches_macro,
+    clippy::needless_pass_by_value,
+    clippy::uninlined_format_args
+)]
+
 use serde_json::{json, Value};
 
 fn to_json(toml: Value) -> Value {

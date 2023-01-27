@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use serde_json::{json, Value};
 
 macro_rules! bad {

@@ -1,3 +1,5 @@
+#![allow(clippy::single_char_pattern)]
+
 use basic_toml::to_string;
 use serde::{Deserialize, Serialize};
 

@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use serde::{de, Deserialize};
 use std::fmt;
 

@@ -1,3 +1,5 @@
+#![allow(clippy::single_char_pattern)]
+
 use serde_json::Value;
 
 macro_rules! bad {

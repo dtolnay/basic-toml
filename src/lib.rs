@@ -92,6 +92,45 @@
 //! [`serde`]: https://serde.rs/
 
 #![deny(missing_docs)]
+#![allow(
+    clippy::bool_to_int_with_if,
+    clippy::borrow_deref_ref,
+    clippy::comparison_to_empty,
+    clippy::enum_glob_use,
+    clippy::extra_unused_lifetimes,
+    clippy::if_not_else,
+    clippy::is_digit_ascii_radix,
+    clippy::len_zero,
+    clippy::manual_let_else,
+    clippy::manual_range_contains,
+    clippy::manual_strip,
+    clippy::map_identity,
+    clippy::map_unwrap_or,
+    clippy::match_like_matches_macro,
+    clippy::match_same_arms,
+    clippy::match_wildcard_for_single_variants,
+    clippy::missing_errors_doc,
+    clippy::must_use_candidate,
+    clippy::needless_borrow,
+    clippy::needless_borrowed_reference,
+    clippy::needless_doctest_main,
+    clippy::needless_lifetimes,
+    clippy::needless_pass_by_value,
+    clippy::redundant_else,
+    clippy::redundant_field_names,
+    clippy::result_large_err,
+    clippy::semicolon_if_nothing_returned,
+    clippy::similar_names,
+    clippy::single_char_add_str,
+    clippy::single_char_pattern,
+    clippy::suspicious_to_owned,
+    clippy::type_complexity,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_wraps,
+    clippy::unnested_or_patterns,
+    clippy::unwrap_or_else_default,
+    clippy::wrong_self_convention
+)]
 
 mod de;
 mod error;

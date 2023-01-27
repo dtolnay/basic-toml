@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
