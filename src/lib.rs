@@ -23,7 +23,7 @@
 //!
 //! An example of deserializing with TOML is:
 //!
-//! ```rust
+//! ```
 //! use serde_derive::Deserialize;
 //!
 //! #[derive(Deserialize)]
@@ -57,7 +57,7 @@
 //!
 //! You can serialize types in a similar fashion:
 //!
-//! ```rust
+//! ```
 //! use serde_derive::Serialize;
 //!
 //! #[derive(Serialize)]
