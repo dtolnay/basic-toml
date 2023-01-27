@@ -423,7 +423,7 @@ impl<'a> Tokenizer<'a> {
         let mut buf = String::with_capacity(len);
         for _ in 0..len {
             match self.one() {
-                Some((_, ch)) if ch as u32 <= 0x7F && ch.is_digit(16) => buf.push(ch),
+                Some((_, ch)) if ch as u32 <= 0x7F && ch.is_ascii_hexdigit() => buf.push(ch),
                 Some((i, ch)) => return Err(Error::InvalidHexEscape(i, ch)),
                 None => return Err(Error::UnterminatedString(start)),
             }
