@@ -236,7 +236,7 @@ impl<'a> Serializer<'a> {
         let array_of_tables = match *state {
             State::End => return Ok(()),
             State::Array { .. } => true,
-            _ => false,
+            State::Table { .. } => false,
         };
 
         // Unlike [..]s, we can't omit [[..]] ancestors, so be sure to emit table
@@ -282,7 +282,7 @@ impl<'a> Serializer<'a> {
                     }
                 }
             }
-            _ => {}
+            State::End => {}
         }
         self.dst.push_str("[");
         if array_of_tables {
