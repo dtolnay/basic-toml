@@ -3,11 +3,11 @@
 [![Latest Version](https://img.shields.io/crates/v/toml.svg)](https://crates.io/crates/toml)
 [![Documentation](https://docs.rs/toml/badge.svg)](https://docs.rs/toml)
 
-A [TOML][toml] decoder and encoder for Rust. This library is currently compliant
-with the v0.5.0 version of TOML. This library will also likely continue to stay
-up to date with the TOML specification as changes happen.
+A [TOML] decoder and encoder for Rust. This library is currently compliant with
+the v0.5.0 version of TOML. This library will also likely continue to stay up to
+date with the TOML specification as changes happen.
 
-[toml]: https://github.com/toml-lang/toml
+[TOML]: https://toml.io
 
 ```toml
 # Cargo.toml

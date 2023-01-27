@@ -1,6 +1,6 @@
 //! A [TOML]-parsing library
 //!
-//! This library implements a [TOML] v0.5.0 compatible parser, primarily
+//! This library implements a TOML v0.5.0 compatible parser, primarily
 //! supporting the [`serde`] library for encoding/decoding various types in
 //! Rust.
 //!
@@ -87,7 +87,7 @@
 //! }
 //! ```
 //!
-//! [TOML]: https://github.com/toml-lang/toml
+//! [TOML]: https://toml.io
 //! [Cargo]: https://crates.io/
 //! [`serde`]: https://serde.rs/
 
