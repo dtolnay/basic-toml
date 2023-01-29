@@ -2,7 +2,7 @@ use crate::tokens::{Error as TokenError, Span, Token, Tokenizer};
 use serde::de;
 use serde::de::IntoDeserializer;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error;
 use std::f64;
 use std::fmt::{self, Display};
@@ -96,6 +96,9 @@ enum ErrorKind {
     /// A duplicate table definition was found.
     DuplicateTable(String),
 
+    /// Duplicate key in table.
+    DuplicateKey(String),
+
     /// A previously defined table was redefined as an array.
     RedefineAsArray,
 
@@ -167,6 +170,7 @@ impl<'de, 'b> de::Deserializer<'de> for &'b mut Deserializer<'de> {
             tables: &mut tables,
             array: false,
             de: self,
+            keys: HashSet::new(),
         });
         res.map_err(|mut err| {
             // Errors originating from this library (toml), have an offset
@@ -258,6 +262,7 @@ struct MapVisitor<'de, 'b> {
     tables: &'b mut [Table<'de>],
     array: bool,
     de: &'b mut Deserializer<'de>,
+    keys: HashSet<Cow<'de, str>>,
 }
 
 impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
@@ -273,9 +278,15 @@ impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
 
         loop {
             assert!(self.next_value.is_none());
-            if let Some((key, value)) = self.values.next() {
-                let ret = seed.deserialize(StrDeserializer::new(key.1.clone()))?;
-                self.next_value = Some((key, value));
+            if let Some(((span, key), value)) = self.values.next() {
+                if !self.keys.insert(key.clone()) {
+                    return Err(Error::from_kind(
+                        Some(span.start),
+                        ErrorKind::DuplicateKey(key.into_owned()),
+                    ));
+                }
+                let ret = seed.deserialize(StrDeserializer::new(key.clone()))?;
+                self.next_value = Some(((span, key), value));
                 return Ok(Some(ret));
             }
 
@@ -340,7 +351,13 @@ impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
             // just next the next portion of its header and then continue
             // decoding.
             if self.depth != table.header.len() {
-                let (_span, key) = &table.header[self.depth];
+                let (span, key) = &table.header[self.depth];
+                if !self.keys.insert(key.clone()) {
+                    return Err(Error::from_kind(
+                        Some(span.start),
+                        ErrorKind::DuplicateKey(key.clone().into_owned()),
+                    ));
+                }
                 let key = seed.deserialize(StrDeserializer::new(key.clone()))?;
                 return Ok(Some(key));
             }
@@ -392,6 +409,7 @@ impl<'de, 'b> de::MapAccess<'de> for MapVisitor<'de, 'b> {
             table_pindices: self.table_pindices,
             tables: &mut *self.tables,
             de: &mut *self.de,
+            keys: HashSet::new(),
         });
         res.map_err(|mut e| {
             e.add_key_context(&self.tables[self.cur - 1].header[self.depth].1);
@@ -454,6 +472,7 @@ impl<'de, 'b> de::SeqAccess<'de> for MapVisitor<'de, 'b> {
             table_pindices: self.table_pindices,
             tables: self.tables,
             de: self.de,
+            keys: HashSet::new(),
         })?;
         self.cur_parent = next;
         Ok(Some(ret))
@@ -582,6 +601,7 @@ impl<'de> de::Deserializer<'de> for ValueDeserializer<'de> {
                 visitor.visit_map(InlineTableDeserializer {
                     values: values.into_iter(),
                     next_value: None,
+                    keys: HashSet::new(),
                 })
             }
         };
@@ -727,9 +747,10 @@ impl<'de> de::EnumAccess<'de> for DottedTableDeserializer<'de> {
     }
 }
 
-struct InlineTableDeserializer<'a> {
-    values: vec::IntoIter<TablePair<'a>>,
-    next_value: Option<Value<'a>>,
+struct InlineTableDeserializer<'de> {
+    values: vec::IntoIter<TablePair<'de>>,
+    next_value: Option<Value<'de>>,
+    keys: HashSet<Cow<'de, str>>,
 }
 
 impl<'de> de::MapAccess<'de> for InlineTableDeserializer<'de> {
@@ -739,11 +760,17 @@ impl<'de> de::MapAccess<'de> for InlineTableDeserializer<'de> {
     where
         K: de::DeserializeSeed<'de>,
     {
-        let ((_span, key), value) = match self.values.next() {
+        let ((span, key), value) = match self.values.next() {
             Some(pair) => pair,
             None => return Ok(None),
         };
         self.next_value = Some(value);
+        if !self.keys.insert(key.clone()) {
+            return Err(Error::from_kind(
+                Some(span.start),
+                ErrorKind::DuplicateKey(key.into_owned()),
+            ));
+        }
         seed.deserialize(StrDeserializer::new(key)).map(Some)
     }
 
@@ -1560,6 +1587,9 @@ impl Display for Error {
             ErrorKind::NumberInvalid => "invalid number".fmt(f)?,
             ErrorKind::DuplicateTable(ref s) => {
                 write!(f, "redefinition of table `{}`", s)?;
+            }
+            ErrorKind::DuplicateKey(ref s) => {
+                write!(f, "duplicate key: `{}`", s)?;
             }
             ErrorKind::RedefineAsArray => "table redefined as array".fmt(f)?,
             ErrorKind::MultilineStringKey => "multiline strings are not allowed for key".fmt(f)?,

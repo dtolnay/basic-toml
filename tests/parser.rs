@@ -426,10 +426,9 @@ fn inline_tables() {
         "a = {,}",
         "expected a table key, found a comma at line 1 column 6"
     );
-    #[cfg(any())]
     bad!(
         "a = {a=1,a=1}",
-        "duplicate key: `a` for key `a` at line 1 column 5"
+        "duplicate key: `a` for key `a` at line 1 column 10"
     );
     bad!(
         "a = {\n}",
@@ -529,40 +528,35 @@ fn booleans() {
 
 #[test]
 fn bad_nesting() {
-    #[cfg(any())]
     bad!(
         "
         a = [2]
         [[a]]
         b = 5
         ",
-        "duplicate key: `a` at line 3 column 9"
+        "duplicate key: `a` at line 3 column 11"
     );
-    #[cfg(any())]
     bad!(
         "
         a = 1
         [a.b]
         ",
-        "duplicate key: `a` at line 3 column 9"
+        "duplicate key: `a` at line 3 column 10"
     );
-    #[cfg(any())]
     bad!(
         "
         a = []
         [a.b]
         ",
-        "duplicate key: `a` at line 3 column 9"
+        "duplicate key: `a` at line 3 column 10"
     );
-    #[cfg(any())]
     bad!(
         "
         a = []
         [[a.b]]
         ",
-        "duplicate key: `a` at line 3 column 9"
+        "duplicate key: `a` at line 3 column 11"
     );
-    #[cfg(any())]
     bad!(
         "
         [a]
@@ -570,7 +564,7 @@ fn bad_nesting() {
         [a.b]
         c = 2
         ",
-        "duplicate key: `b` for key `a` at line 4 column 9"
+        "duplicate key: `b` for key `a` at line 4 column 12"
     );
 }
 
@@ -595,14 +589,13 @@ fn bad_table_redefine() {
         ",
         "redefinition of table `a` for key `a` at line 5 column 9"
     );
-    #[cfg(any())]
     bad!(
         "
         [a]
         b = {}
         [a.b]
         ",
-        "duplicate key: `b` for key `a` at line 4 column 9"
+        "duplicate key: `b` for key `a` at line 4 column 12"
     );
 
     bad!(

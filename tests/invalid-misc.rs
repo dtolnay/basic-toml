@@ -30,12 +30,11 @@ fn bad() {
     bad!("a = 0x-1", "invalid number at line 1 column 7");
 
     // Dotted keys.
-    #[cfg(any())]
     bad!(
         "a.b.c = 1
          a.b = 2
         ",
-        "duplicate key: `b` for key `a` at line 1 column 9"
+        "duplicate key: `b` for key `a` at line 2 column 12"
     );
     bad!(
         "a = 1

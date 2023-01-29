@@ -34,17 +34,15 @@ test!(
     include_str!("invalid/datetime-malformed-with-milli.toml"),
     "invalid number at line 1 column 14"
 );
-#[cfg(any())]
 test!(
     duplicate_key_table,
     include_str!("invalid/duplicate-key-table.toml"),
-    "duplicate key: `type` for key `fruit` at line 4 column 1"
+    "duplicate key: `type` for key `fruit` at line 4 column 8"
 );
-#[cfg(any())]
 test!(
     duplicate_keys,
     include_str!("invalid/duplicate-keys.toml"),
-    "duplicate key: `dupe` at line 1 column 1"
+    "duplicate key: `dupe` at line 2 column 1"
 );
 test!(
     duplicate_table,
