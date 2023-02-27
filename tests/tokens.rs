@@ -1,4 +1,5 @@
 #![allow(
+    clippy::let_underscore_untyped,
     clippy::manual_range_contains,
     clippy::needless_pass_by_value,
     clippy::type_complexity

@@ -1,4 +1,4 @@
-#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::let_underscore_untyped, clippy::uninlined_format_args)]
 
 use serde_json::{json, Value};
 
