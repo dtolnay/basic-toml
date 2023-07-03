@@ -865,17 +865,7 @@ impl<'de> de::VariantAccess<'de> for TableEnumDeserializer<'de> {
                             },
                         )),
                     })
-                    // Fold all values into a `Vec`, or return the first error.
-                    .try_fold(Vec::with_capacity(len), |mut tuple_values, value_result| {
-                        match value_result {
-                            Ok(value) => {
-                                tuple_values.push(value);
-                                Ok(tuple_values)
-                            }
-                            // `Result<de::Value, Self::Error>` to `Result<Vec<_>, Self::Error>`
-                            Err(e) => Err(e),
-                        }
-                    })?;
+                    .collect::<Result<Vec<_>, _>>()?;
 
                 if tuple_values.len() == len {
                     de::Deserializer::deserialize_seq(
