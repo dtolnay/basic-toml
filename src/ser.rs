@@ -8,9 +8,9 @@ use std::fmt::{self, Display, Write};
 /// Serialization can fail if `T`'s implementation of `Serialize` decides to
 /// fail, if `T` contains a map with non-string keys, or if `T` attempts to
 /// serialize an unsupported datatype such as an enum, tuple, or tuple struct.
-pub fn to_string<T: ?Sized>(value: &T) -> Result<String, crate::Error>
+pub fn to_string<T>(value: &T) -> Result<String, crate::Error>
 where
-    T: Serialize,
+    T: ?Sized + Serialize,
 {
     let mut dst = String::with_capacity(128);
     value.serialize(&mut Serializer::new(&mut dst))?;
@@ -386,9 +386,9 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         Err(Error::UnsupportedNone)
     }
 
-    fn serialize_some<T: ?Sized>(self, value: &T) -> Result<(), Self::Error>
+    fn serialize_some<T>(self, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(self)
     }
@@ -410,18 +410,14 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         self.serialize_str(variant)
     }
 
-    fn serialize_newtype_struct<T: ?Sized>(
-        self,
-        _name: &'static str,
-        value: &T,
-    ) -> Result<(), Self::Error>
+    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T: ?Sized>(
+    fn serialize_newtype_variant<T>(
         self,
         _name: &'static str,
         _variant_index: u32,
@@ -429,7 +425,7 @@ impl<'a, 'b> ser::Serializer for &'b mut Serializer<'a> {
         _value: &T,
     ) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         Err(Error::UnsupportedType)
     }
@@ -505,9 +501,9 @@ impl<'a, 'b> ser::SerializeSeq for SerializeSeq<'a, 'b> {
     type Ok = ();
     type Error = Error;
 
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
+    fn serialize_element<T>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(&mut Serializer {
             dst: &mut *self.ser.dst,
@@ -543,9 +539,9 @@ impl<'a, 'b> ser::SerializeTuple for SerializeSeq<'a, 'b> {
     type Ok = ();
     type Error = Error;
 
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
+    fn serialize_element<T>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -559,9 +555,9 @@ impl<'a, 'b> ser::SerializeTupleStruct for SerializeSeq<'a, 'b> {
     type Ok = ();
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
+    fn serialize_field<T>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -575,17 +571,17 @@ impl<'a, 'b> ser::SerializeMap for SerializeTable<'a, 'b> {
     type Ok = ();
     type Error = Error;
 
-    fn serialize_key<T: ?Sized>(&mut self, input: &T) -> Result<(), Error>
+    fn serialize_key<T>(&mut self, input: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         self.key = input.serialize(StringExtractor)?;
         Ok(())
     }
 
-    fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Error>
+    fn serialize_value<T>(&mut self, value: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         let res = value.serialize(&mut Serializer {
             dst: &mut *self.ser.dst,
@@ -617,9 +613,9 @@ impl<'a, 'b> ser::SerializeStruct for SerializeTable<'a, 'b> {
     type Ok = ();
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(&mut self, key: &'static str, value: &T) -> Result<(), Error>
+    fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         let res = value.serialize(&mut Serializer {
             dst: &mut *self.ser.dst,
@@ -720,9 +716,9 @@ impl ser::Serializer for StringExtractor {
         Err(Error::KeyNotString)
     }
 
-    fn serialize_some<T: ?Sized>(self, _value: &T) -> Result<String, Self::Error>
+    fn serialize_some<T>(self, _value: &T) -> Result<String, Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         Err(Error::KeyNotString)
     }
@@ -744,18 +740,18 @@ impl ser::Serializer for StringExtractor {
         Err(Error::KeyNotString)
     }
 
-    fn serialize_newtype_struct<T: ?Sized>(
+    fn serialize_newtype_struct<T>(
         self,
         _name: &'static str,
         value: &T,
     ) -> Result<String, Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T: ?Sized>(
+    fn serialize_newtype_variant<T>(
         self,
         _name: &'static str,
         _variant_index: u32,
@@ -763,7 +759,7 @@ impl ser::Serializer for StringExtractor {
         _value: &T,
     ) -> Result<String, Self::Error>
     where
-        T: Serialize,
+        T: ?Sized + Serialize,
     {
         Err(Error::KeyNotString)
     }
