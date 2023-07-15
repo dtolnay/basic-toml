@@ -1,6 +1,6 @@
 [package]
 name = "basic-toml"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Alex Crichton <alex@alexcrichton.com>", "David Tolnay <dtolnay@gmail.com>"]
 categories = ["config", "encoding", "parser-implementations"]
 description = "Minimal TOML library with few dependencies"
