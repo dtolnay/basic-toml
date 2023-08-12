@@ -292,7 +292,7 @@ macro_rules! serialize_float {
             (false, true, _) => write!($this.dst, "nan"),
             (true, false, true) => write!($this.dst, "-0.0"),
             (false, false, true) => write!($this.dst, "0.0"),
-            (_, false, false) => write!($this.dst, "{}", $v).and_then(|_| {
+            (_, false, false) => write!($this.dst, "{}", $v).and_then(|()| {
                 if $v % 1.0 == 0.0 {
                     write!($this.dst, ".0")
                 } else {
