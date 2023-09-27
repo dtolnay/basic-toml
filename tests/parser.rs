@@ -99,7 +99,7 @@ is preserved.
 
 #[test]
 fn tables_in_arrays() {
-    let toml = r#"
+    let toml = r"
 [[foo]]
 #…
 [foo.bar]
@@ -109,7 +109,7 @@ fn tables_in_arrays() {
 #…
 [foo.bar]
 #...
-"#;
+";
     let table: Value = basic_toml::from_str(toml).unwrap();
     table["foo"][0]["bar"].as_object().unwrap();
     table["foo"][1]["bar"].as_object().unwrap();
@@ -117,8 +117,8 @@ fn tables_in_arrays() {
 
 #[test]
 fn empty_table() {
-    let toml = r#"
-[foo]"#;
+    let toml = r"
+[foo]";
     let table: Value = basic_toml::from_str(toml).unwrap();
     table["foo"].as_object().unwrap();
 }
@@ -673,15 +673,15 @@ fn require_newline_after_value() {
         "expected newline, found an identifier at line 2 column 6"
     );
     bad!(
-        r#"
+        r"
 0=0r0=0r=false
-"#,
+",
         "invalid number at line 2 column 3"
     );
     bad!(
-        r#"
+        r"
 0=0r0=0r=falsefal=false
-"#,
+",
         "invalid number at line 2 column 3"
     );
 }
