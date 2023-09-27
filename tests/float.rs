@@ -18,7 +18,7 @@ macro_rules! float_inf_tests {
             sf8: $ty,
         }
         let inf: S = basic_toml::from_str(
-            r"
+            "
         # infinity
         sf1 = inf  # positive infinity
         sf2 = +inf # positive infinity
