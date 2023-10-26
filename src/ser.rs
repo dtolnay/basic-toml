@@ -288,8 +288,7 @@ macro_rules! serialize_float {
     ($this:expr, $v:expr) => {{
         $this.emit_key(ArrayState::Started)?;
         match ($v.is_sign_negative(), $v.is_nan(), $v == 0.0) {
-            (true, true, _) => write!($this.dst, "-nan"),
-            (false, true, _) => write!($this.dst, "nan"),
+            (_, true, _) => write!($this.dst, "nan"),
             (true, false, true) => write!($this.dst, "-0.0"),
             (false, false, true) => write!($this.dst, "0.0"),
             (_, false, false) => write!($this.dst, "{}", $v).and_then(|()| {
