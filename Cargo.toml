@@ -11,12 +11,12 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/dtolnay/basic-toml"
 
 [dependencies]
-serde = "1.0.166"
+serde = "1.0.190"
 
 [dev-dependencies]
 semver = { version = "1.0.17", features = ["serde"] }
-serde = { version = "1.0.166", features = ["derive"] }
-serde_derive = "1.0.166"
+serde = { version = "1.0.190", features = ["derive"] }
+serde_derive = "1.0.190"
 serde_json = "1.0.99"
 
 [lib]
