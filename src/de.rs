@@ -1121,13 +1121,13 @@ impl<'a> Deserializer<'a> {
             })
         } else if s == "nan" {
             Ok(Value {
-                e: E::Float(f64::NAN),
+                e: E::Float(f64::NAN.copysign(1.0)),
                 start,
                 end,
             })
         } else if s == "-nan" {
             Ok(Value {
-                e: E::Float(-f64::NAN),
+                e: E::Float(f64::NAN.copysign(-1.0)),
                 start,
                 end,
             })
