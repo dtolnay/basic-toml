@@ -113,7 +113,7 @@
 //!
 //! TOML's date and time syntax are not supported.
 
-#![doc(html_root_url = "https://docs.rs/basic-toml/0.1.4")]
+#![doc(html_root_url = "https://docs.rs/basic-toml/0.1.5")]
 #![deny(missing_docs)]
 #![allow(
     clippy::bool_to_int_with_if,
