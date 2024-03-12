@@ -728,25 +728,6 @@ impl<'de> de::IntoDeserializer<'de, Box<Error>> for Value<'de> {
     }
 }
 
-struct DottedTableDeserializer<'a> {
-    name: Cow<'a, str>,
-    value: Value<'a>,
-}
-
-impl<'de> de::EnumAccess<'de> for DottedTableDeserializer<'de> {
-    type Error = Box<Error>;
-    type Variant = TableEnumDeserializer<'de>;
-
-    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
-    where
-        V: de::DeserializeSeed<'de>,
-    {
-        let (name, value) = (self.name, self.value);
-        seed.deserialize(StrDeserializer::new(name))
-            .map(|val| (val, TableEnumDeserializer { value }))
-    }
-}
-
 struct InlineTableDeserializer<'de> {
     values: vec::IntoIter<TablePair<'de>>,
     next_value: Option<Value<'de>>,
