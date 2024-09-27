@@ -105,11 +105,11 @@ impl<'a> Serializer<'a> {
     fn emit_key(&mut self, type_: ArrayState) -> Result<(), Error> {
         self.array_type(type_);
         let state = self.state.clone();
-        self._emit_key(&state)
+        self.do_emit_key(&state)
     }
 
     // recursive implementation of `emit_key` above
-    fn _emit_key(&mut self, state: &State) -> Result<(), Error> {
+    fn do_emit_key(&mut self, state: &State) -> Result<(), Error> {
         match *state {
             State::End => Ok(()),
             State::Array {
@@ -120,7 +120,7 @@ impl<'a> Serializer<'a> {
             } => {
                 assert!(type_.get().is_some());
                 if first.get() {
-                    self._emit_key(parent)?;
+                    self.do_emit_key(parent)?;
                 }
                 self.emit_array(first, len);
                 Ok(())
