@@ -147,7 +147,7 @@ struct Deserializer<'a> {
     tokens: Tokenizer<'a>,
 }
 
-impl<'de, 'b> de::Deserializer<'de> for &'b mut Deserializer<'de> {
+impl<'de> de::Deserializer<'de> for &mut Deserializer<'de> {
     type Error = Box<Error>;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Box<Error>>
@@ -712,7 +712,7 @@ impl<'de, 'b> de::IntoDeserializer<'de, Box<Error>> for MapVisitor<'de, 'b> {
     }
 }
 
-impl<'de, 'b> de::IntoDeserializer<'de, Box<Error>> for &'b mut Deserializer<'de> {
+impl<'de> de::IntoDeserializer<'de, Box<Error>> for &mut Deserializer<'de> {
     type Deserializer = Self;
 
     fn into_deserializer(self) -> Self::Deserializer {
