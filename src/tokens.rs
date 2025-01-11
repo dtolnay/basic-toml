@@ -382,7 +382,6 @@ impl<'a> Tokenizer<'a> {
                                 match ch {
                                     ' ' | '\t' => {
                                         me.chars.next();
-                                        continue;
                                     }
                                     '\n' => {
                                         me.chars.next();
