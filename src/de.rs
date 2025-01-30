@@ -1319,7 +1319,7 @@ impl<'a> Deserializer<'a> {
     /// # Parameters
     ///
     /// * `key_parts`: Each segment of the dotted key, e.g. `part.one` maps to
-    ///                `vec![Cow::Borrowed("part"), Cow::Borrowed("one")].`
+    ///   `vec![Cow::Borrowed("part"), Cow::Borrowed("one")].`
     /// * `value`: The parsed value.
     /// * `values`: The `Vec` to store the value in.
     fn add_dotted_key(
