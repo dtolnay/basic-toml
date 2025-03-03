@@ -117,6 +117,7 @@
 #![deny(missing_docs)]
 #![allow(
     clippy::bool_to_int_with_if,
+    clippy::elidable_lifetime_names,
     clippy::let_underscore_untyped,
     clippy::manual_let_else,
     clippy::manual_range_contains,

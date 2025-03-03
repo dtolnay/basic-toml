@@ -1,4 +1,8 @@
-#![allow(clippy::needless_lifetimes, clippy::too_many_lines)]
+#![allow(
+    clippy::elidable_lifetime_names,
+    clippy::needless_lifetimes,
+    clippy::too_many_lines
+)]
 
 use serde::{de, Deserialize};
 use std::fmt;
