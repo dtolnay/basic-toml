@@ -5,6 +5,8 @@
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-basic--toml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/basic-toml)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/dtolnay/basic-toml/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/dtolnay/basic-toml/actions?query=branch%3Amaster)
 
+_(This project is no longer maintained.)_
+
 A library for parsing and producing data in [TOML] format using [Serde].
 
 This crate is a stripped down fork of version 0.5 of the `toml` crate (from
